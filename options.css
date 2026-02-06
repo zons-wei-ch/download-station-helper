@@ -1,0 +1,82 @@
+/* 全頁面居中 */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  color: #202124;
+
+  display: flex;
+  justify-content: center;  /* 水平置中 */
+  align-items: center;      /* 垂直置中 */
+  height: 100vh;            /* 滿版高度 */
+}
+
+/* 設定表單容器 */
+.options-container {
+  width: 100%;
+  max-width: 600px;         /* 限制寬度 */
+  background-color: #7272726e;
+  padding: 20px 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* 每個設定區塊 */
+.options-container div {
+  margin: 10px 0;           /* 上下間距 10px */
+}
+
+/* Label 與輸入框排列 */
+label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* Input / Select 美化 */
+input[type="text"],
+input[type="password"],
+select {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-left: 10px;
+  transition: border 0.2s;
+}
+
+/* 輸入框聚焦效果 */
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus {
+  border-color: #1a73e8;
+  outline: none;
+  box-shadow: 0 0 3px rgba(26, 115, 232, 0.4);
+}
+
+/* 儲存按鈕 */
+button#save {
+  width: 100%;
+  padding: 10px 0;
+  background-color: #1961c0;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button#save:hover {
+  background-color: #1669c1;
+}
+
+/* 下拉選單 */
+select {
+  cursor: pointer;
+}

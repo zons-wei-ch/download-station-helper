@@ -1,0 +1,232 @@
+/* ===== Header ===== */
+.header {
+    display: flex;
+    align-items: center;          /* 垂直置中 */
+    justify-content: space-between; /* 左右分開 */
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 按鈕之間的間距 */
+}
+
+.header-actions img {
+    margin-left: 8px;
+    transition: transform 0.1s;
+}
+
+.header-actions img:active {
+    transform: scale(0.9);
+}
+
+/* 標題 */
+.header h1 {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+    color: #3f444a;
+    filter: drop-shadow(0 0 1px rgba(0,0,0,0.4));
+}
+
+/* 設定圖示 */
+#purgeFinished, #openOptions, #addTask {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+/* Add Task 面板樣式 */
+.add-task-panel {
+    display: none; /* 由 JS 切換為 flex */
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0; /* 確保面板不會被壓縮 */
+}
+
+.add-task-panel input {
+    flex: 1;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#addTask:hover, #purgeFinished:hover, #openOptions:hover {
+    opacity: 1;
+}
+
+#addTaskContainer {
+  display: none;          /* 由 JS 控制為 flex */
+  flex-shrink: 0;         /* 面板高度固定 */
+  padding: 10px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  align-items: center;
+  gap: 8px;
+}
+
+#addTaskContainer input:focus {
+    outline: none;
+    border-color: #1760bfe1;
+}
+
+/* ===== 整體 popup ===== */
+body {
+    margin: 0;
+    padding: 0;
+    width: 600px;
+    height: 500px; /* 維持固定總高度 */
+    display: flex;
+    flex-direction: column; /* 垂直排列元件 */
+    overflow: hidden; /* 防止最外層出現 scroll bar */
+}
+
+/* ===== 狀態列 ===== */
+.status {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    background-color: #d2d2d2;
+    -webkit-text-stroke: 0.1px black;
+}
+
+.status.ok {
+    color: #0f5d29d9;
+}
+
+.status.error {
+    color: #d93125b9;
+}
+
+/* ===== 任務列表 ===== */
+.task-list {
+    flex: 1;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* ===== 單一任務卡片 ===== */
+.task {
+    position: relative;
+    background-color: #d5d5d5f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-size: 13px;
+}
+
+/* hover 效果 */
+.task:hover {
+    background-color: #a5a5a5e0;
+}
+
+/* ===== 任務標題 ===== */
+.task-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    padding-right: 26px; /* 預留刪除按鈕空間 */
+    word-break: break-word;
+    -webkit-text-stroke: 0.1px black;
+}
+
+/* ===== 任務資訊 ===== */
+.task-meta {
+    font-size: 12px;
+    color: #424549;
+    margin: 1px 0;
+    -webkit-text-stroke: 0.1px black;
+}
+
+/* ===== 進度條 ===== */
+.task-progress {
+    width: 100%;
+    height: 8px;
+    margin: 4px 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* 背景 */
+.task-progress::-webkit-progress-bar {
+    background-color: #e5e5e5;
+}
+
+/* downloading */
+.task[data-status="downloading"] .task-progress::-webkit-progress-value {
+    background-color: #1f77eedd;
+}
+/* finished */
+.task[data-status="finished"] .task-progress::-webkit-progress-value {
+    background-color: #137333;
+}
+/* seeding */
+.task[data-status="seeding"] .task-progress::-webkit-progress-value {
+    background-color: #dd7735;
+}
+/* paused */
+.task[data-status="paused"] .task-progress::-webkit-progress-value {
+    background-color: #5f6368;
+}
+/* error */
+.task[data-status="error"] .task-progress::-webkit-progress-value {
+    background-color: #cc3322;
+}
+
+/* ===== 不同狀態顏色 ===== */
+.task[data-status="downloading"] .task-title {
+    color: #1f77eedd;
+}
+.task[data-status="finished"] .task-title {
+    color: #137333;
+}
+.task[data-status="seeding"] .task-title {
+    color: #dd7735;
+}
+.task[data-status="paused"] .task-title {
+    color: #5f6368;
+}
+.task[data-status="error"] .task-title {
+    color: #cc3322;
+}
+
+/* ===== 刪除按鈕 ===== */
+.task-delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.task-action-btn {
+    position: absolute;
+    top: 8px;
+    right: 38px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.5;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.task-delete-btn:hover, .task-action-btn:hover {
+    opacity: 1;
+}

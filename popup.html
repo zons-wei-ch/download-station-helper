@@ -1,0 +1,26 @@
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+    <header class="header">
+        <h1>Download Station Helper</h1>
+        <div class="header-actions">
+            <img id="addTask" src="icons/add.png" title="Add Task" />
+            <img id="purgeFinished" src="icons/purge.png" title="Purge Finished" />
+            <img id="openOptions" src="icons/settings.png" title="Setting" />
+        </div>
+    </header>
+
+    <div id="addTaskContainer" class="add-task-panel">
+        <input type="text" id="taskUrl" placeholder="paste url link (http, ftp, magnet...)">
+        <button id="applyTask">Apply</button>
+    </div>
+
+    <div id="status" class="status">Connecting ...</div>
+    <ul id="taskList" class="task-list"></ul>
+
+    <script src="popup.js"></script>
+</body>
+</html>

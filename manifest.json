@@ -1,0 +1,33 @@
+{
+    "manifest_version": 3,
+    "name": "download station helper",
+    "version": "1.0",
+    "description": "handle tasks for download station",
+    "permissions": [
+        "storage",
+        "idle",
+        "tabs"
+    ],
+    "host_permissions": [
+        "http://*/webapi/*",
+        "https://*/webapi/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "icons": {
+        "16": "icons/download_16.png",
+        "48": "icons/download_48.png",
+        "128": "icons/download_128.png"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+        "matches": ["<all_urls>"],
+        "js": ["content.js"]
+        }
+    ],
+    "options_page": "options.html"
+}
