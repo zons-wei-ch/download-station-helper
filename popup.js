@@ -46,18 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const addTaskContainer = document.getElementById("addTaskContainer");
     const applyTaskBtn = document.getElementById("applyTask");
     const taskUrlInput = document.getElementById("taskUrl");
-    // 1. 點擊 add 圖示切換輸入框顯示/隱藏
+    // 點擊新增任務
     addTaskBtn.addEventListener("click", () => {
-        const isHidden = addTaskContainer.style.display === "none";
-        addTaskContainer.style.display = isHidden ? "flex" : "none";
-        if (isHidden) taskUrlInput.focus();
-    });
-
-    // 2. 點擊新增任務
-    addTaskBtn.addEventListener("click", () => {
-        // 切換一個名為 "active" 的 class
         const isActive = addTaskContainer.classList.toggle("active");
-        
+        // 根據 class 來決定顯示與否，最為穩定
         if (isActive) {
             addTaskContainer.style.display = "flex";
             taskUrlInput.focus();
@@ -65,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
             addTaskContainer.style.display = "none";
         }
     });
-    // 3. 點擊 Apply 按鈕送出網址
+    // 點擊 Apply 按鈕送出網址
     applyTaskBtn.addEventListener("click", () => {
         const url = taskUrlInput.value.trim();
         if (!url) {
@@ -96,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     //
-    initPopup();
+    initPopupWithRetry();
 });
 
 // ---------- 格式化函數 ----------
@@ -276,22 +268,45 @@ function updateStatus(tasks) {
     statusEl.className = "status ok";
 }
 
-async function initPopup() {
-    const res = await chrome.runtime.sendMessage({
-        action: "getLatestTasks"
+function wakeBackground(retries = 5) {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ action: "ping" }, res => {
+            if (res?.alive) {
+                resolve(true);
+            } else if (retries > 0) {
+                setTimeout(() => {
+                    wakeBackground(retries - 1).then(resolve).catch(reject);
+                }, 1000);
+            } else {
+                reject(new Error("Background not responding"));
+            }
+        });
     });
+}
 
-    console.log("initPopup: " + String(res.success));
+async function initPopupWithRetry(retries = 3) {
+    statusEl.textContent = "Waking background...";
 
-    if (res?.success && res.success) {
-        updateStatus(res.tasks);
-        renderTasks(res.tasks);
-    }
-    else {
-        statusEl.textContent = `❌ ${res?.error || "Connect failed"}`;
-        statusEl.className = "status error";
+    try {
+        await wakeBackground(); // ⭐ 先確保 background 活著
+
+        const res = await chrome.runtime.sendMessage({ action: "getLatestTasks" });
+
+        if (res?.success) {
+            updateStatus(res.tasks);
+            renderTasks(res.tasks);
+        } else {
+            statusEl.textContent = "❌ NAS Not Connected";
+        }
+    } catch (e) {
+        if (retries > 0) {
+            setTimeout(() => initPopupWithRetry(retries - 1), 2000);
+        } else {
+            statusEl.textContent = "❌ Background not responding";
+        }
     }
 }
+
 
 chrome.runtime.onMessage.addListener(msg => {
     if (msg.action === "tasksUpdated") {

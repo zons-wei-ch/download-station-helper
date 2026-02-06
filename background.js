@@ -56,12 +56,9 @@ function apiUrl(host, path, params = {}) {
 /* =========================
    登入 DSM
 ========================= */
-async function loginDSM() {
+async function loginDSM(retryCount = 0) {
     const { host, account, password } = await getSettings();
-
-    if (!host || !account) {
-        throw new Error("Host and Account NOT set");
-    }
+    if (!host || !account) throw new Error("Host and Account NOT set");
 
     const url = apiUrl(host, "/webapi/auth.cgi", {
         api: "SYNO.API.Auth",
@@ -73,17 +70,27 @@ async function loginDSM() {
         format: "sid"
     });
 
-    const res = await fetch(url, { credentials: "include" });
-    const data = await res.json();
+    try {
+        const res = await fetch(url, { credentials: "include" });
+        const data = await res.json();
 
-    if (!data.success) {
-        isLogin = false;
-        throw new Error(`Login failed: (${data.error?.code})`);
+        if (!data.success) {
+            isLogin = false;
+            throw new Error(`Login failed: (${data.error?.code})`);
+        }
+        
+        isLogin = true;
+        sid = data.data.sid;
+        return sid;
+    } catch (err) {
+        // 如果失敗且重試次數少於 3 次，且是因為網路問題
+        if (retryCount < 3 && !navigator.onLine) {
+            console.log(`連線失敗，${retryCount + 1} 秒後重試...`);
+            await new Promise(r => setTimeout(r, 2000));
+            return loginDSM(retryCount + 1);
+        }
+        throw err;
     }
-    
-    isLogin = true;
-    sid = data.data.sid;
-    return sid;
 }
 
 /* =========================
@@ -264,8 +271,17 @@ async function createTask(downloadUrl) {
 ========================= */
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
+    // ⭐ 喚醒用
+    if (msg.action === "ping") {
+        // ⭐ 若 timer 死了，順手補啟
+        if (!refreshTimer) {
+            startTaskRefresh();
+        }
+        sendResponse({ alive: true });
+        return;
+    }
     // ⭐ 手動登入（options / popup 可用）
-    if (msg.action === "login") {
+    else if (msg.action === "login") {
         loginDSM()
         .then(() => sendResponse({ success: true }))
         .catch(err =>
@@ -273,12 +289,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         );
         return true;
     }
-    // 取得任務
+    // ⭐ 取得任務
     else if (msg.action === "getLatestTasks") {
         sendResponse({ success: isLogin, tasks: latestTasks });
         return true;
     }
-    // 開始任務
+    // ⭐ 開始任務
     else if (msg.action === "startTask") {
         startTask(msg.taskId)
         .then(() => sendResponse({ success: true }))
@@ -287,7 +303,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         );
         return true;
     }
-    // 暫停任務
+    // ⭐ 暫停任務
     else if (msg.action === "pauseTask") {
         pauseTask(msg.taskId)
         .then(() => sendResponse({ success: true }))
@@ -296,7 +312,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         );
         return true;
     }
-    // 刪除任務
+    // ⭐ 刪除任務
     else if (msg.action === "deleteTask") {
         deleteTask(msg.taskId, msg.deleteFile)
         .then(() => sendResponse({ success: true }))
@@ -305,7 +321,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         );
         return true;
     }
-    // 新增任務
+    // ⭐ 新增任務
     else if (msg.action === "createTask") {
         createTask(msg.url)
         .then(() => sendResponse({ success: true }))
@@ -389,11 +405,19 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 chrome.idle.onStateChanged.addListener(async (newState) => {
     console.log("系統狀態變更:", newState);
     if (newState === "active") {
-        console.log("從休眠喚醒，重新檢查連線...");
-        // 強制重設狀態，確保重新整理
+        console.log("從休眠喚醒，清理狀態並重啟任務...");
+        
+        // 1. 強制清空連線狀態，確保喚醒後一定會重新執行登入流程
         sid = null;
         isLogin = false;
-        await refreshTasks();
+        
+        // 2. 停止舊的 Timer
+        if (refreshTimer) clearInterval(refreshTimer);
+        
+        // 3. 延遲 3 秒執行，確保網路硬體（WiFi）已完全連線
+        setTimeout(async () => {
+            await startTaskRefresh(); 
+        }, 3000);
     }
 });
 

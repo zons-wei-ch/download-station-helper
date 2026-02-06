@@ -59,6 +59,19 @@
     border-radius: 4px;
 }
 
+.add-task-panel button {
+    cursor: pointer;
+    padding: 4px;
+    background-color: #e7ae4c;
+    border: 1px solid black;
+    border-radius: 3px;
+    opacity: 0.5;
+}
+
+.add-task-panel button:hover {
+    opacity: 1;
+}
+
 #addTask:hover, #purgeFinished:hover, #openOptions:hover {
     opacity: 1;
 }
@@ -123,7 +136,8 @@ body {
     background-color: #d5d5d5f0;
     border-radius: 6px;
     padding: 8px 10px;
-    margin-bottom: 8px;
+    margin-top: 2px;
+    margin-bottom: 2px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     font-size: 13px;
 }
