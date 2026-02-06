@@ -1,5 +1,3 @@
-let REFRESH_INTERVAL = 3000; // 預設 3 秒
-let refreshTimer = null;
 const statusEl = document.getElementById("status");
 const taskListEl = document.getElementById("taskList");
 
