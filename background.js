@@ -6,8 +6,6 @@ const state = {
     latestTasks: []
 };
 
-let refreshTimer = null;
-
 // 更新 Badge
 function updateBadge(count) {
     if (count > 0) {
@@ -47,19 +45,11 @@ async function refreshTasks() {
     }
 }
 
-// 管理計時器
-async function startTaskRefresh() {
-    if (refreshTimer) clearInterval(refreshTimer);
-    const { refreshInterval } = await DSM_API.getSettings();
-    refreshTimer = setInterval(refreshTasks, refreshInterval);
-    refreshTasks();
-}
-
-// Message Listener
+// 處裡命令
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "ping") {
-        if (!refreshTimer) startTaskRefresh();
         sendResponse({ alive: true });
+        refreshTasks();
     } 
     else if (msg.action === "login") {
         DSM_API.loginDSM(state)
@@ -103,7 +93,7 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
             await refreshTasks();
         }
         else if (changes.refreshInterval) {
-            startTaskRefresh();
+            setupAlarm();
         }
     }
 });
@@ -111,30 +101,36 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 /* =========================
    生命週期與事件
 ========================= */
+async function setupAlarm() {
+    const settings = await DSM_API.getSettings();
+    const intervalInMinutes = (settings.refreshInterval / 1000) / 60;
+    
+    // Chrome Alarm 最小單位是 1 分鐘 (開發模式可較短，但建議至少 1 分鐘以維持穩定)
+    // 如果你需要更短的頻率，請參考下方的「心跳」技巧
+    chrome.alarms.clearAll();
+    chrome.alarms.create("refreshTasks", {
+        periodInMinutes: Math.max(intervalInMinutes, 0.015)
+    });
+}
+
 chrome.runtime.onStartup.addListener(async () => {
-    await startTaskRefresh();
+    refreshTasks();
+    setupAlarm();
 });
 
 chrome.runtime.onInstalled.addListener(async () => {
-    chrome.alarms.create("refreshTasks", { periodInMinutes: 0.1 });
-    await startTaskRefresh();
+    refreshTasks();
+    setupAlarm();
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
-    if (alarm.name === "refreshTasks") startTaskRefresh();
+    if (alarm.name === "refreshTasks") refreshTasks();
 });
 
 chrome.idle.onStateChanged.addListener(async (newState) => {
     if (newState === "active") {
-        // 1. 強制清空連線狀態，確保喚醒後一定會重新執行登入流程
-        state.sid = null; 
-        state.isLogin = false;
-        // 2. 停止舊的 Timer
-        if (refreshTimer) clearInterval(refreshTimer);
-        // 3. 延遲 3 秒執行，確保網路硬體（WiFi）已完全連線
-        setTimeout(async () => {
-            await startTaskRefresh(); 
-        }, 3000);
+        refreshTasks();
+        setupAlarm();
     }
 });
 

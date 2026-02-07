@@ -8,6 +8,12 @@ export const getSettings = () =>
 async function dsmRequest(state, path, params = {}, method = 'GET') {
     const settings = await getSettings();
     if (!settings.host) throw new Error("NAS Host not set");
+    
+    // 如果不是登入 API，且目前沒有 sid，就先執行登入
+    const isLoginPath = path === "/webapi/auth.cgi";
+    if (!isLoginPath && !state.sid) {
+        await loginDSM(state);
+    }
 
     // 自動處理協定與 URL
     const protocol = settings.host.split(':').pop() === '5001' ? 'https' : 'http';
