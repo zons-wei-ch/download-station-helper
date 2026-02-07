@@ -12,10 +12,13 @@ let refreshTimer = null;
 function updateBadge(count) {
     if (count > 0) {
         chrome.action.setBadgeText({ text: String(count) });
-        chrome.action.setBadgeBackgroundColor({ color: "#669ee7d1" });
-    } else {
+        chrome.action.setBadgeBackgroundColor({ color: "#66aadd" });
+    } else if (count == 0) {
         chrome.action.setBadgeText({ text: "-" });
-        chrome.action.setBadgeBackgroundColor({ color: "#c3c3c3d1" });
+        chrome.action.setBadgeBackgroundColor({ color: "#c3c3c3" });
+    } else {
+        chrome.action.setBadgeText({ text: "!" });
+        chrome.action.setBadgeBackgroundColor({ color: "#ff8888" });
     }
 }
 
@@ -34,6 +37,13 @@ async function refreshTasks() {
     }
     catch (e) {
         console.error("refreshTasks failed", e);
+        updateBadge(-1);
+        chrome.runtime.sendMessage({
+            action: "tasksUpdated",
+            success: false,
+            error: e.message,
+            tasks: []
+        }).catch(() => {});
     }
 }
 
@@ -111,9 +121,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
-    if (alarm.name === "refreshTasks") {
-        refreshTasks();
-    }
+    if (alarm.name === "refreshTasks") startTaskRefresh();
 });
 
 chrome.idle.onStateChanged.addListener(async (newState) => {

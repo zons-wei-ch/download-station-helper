@@ -15,12 +15,19 @@
 
     <div id="addTaskContainer" class="add-task-panel">
         <input type="text" id="taskUrl" placeholder="paste url link (http, ftp, magnet...)">
-        <button id="applyTask">Apply</button>
+        <img id="applyTask" src="icons/send.png" title="Apply" />
     </div>
-
-    <div id="status" class="status">Connecting ...</div>
+    
+    <div id="statusBar" class="statusBar">
+        <div id="status" class="status">Connecting ...</div>
+        <img id="download" src="icons/download.png" title="Download" />
+        <div id="download_speed" class="download_speed">-</div>
+        <img id="upload" src="icons/upload.png" title="Upload" />
+        <div id="upload_speed" class="upload_speed">-</div>
+    </div>
+    
     <ul id="taskList" class="task-list"></ul>
 
-    <script src="popup.js"></script>
+    <script type="module" src="popup.js"></script>
 </body>
 </html>

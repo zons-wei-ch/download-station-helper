@@ -1,3 +1,15 @@
+/* ===== 整體 popup ===== */
+body {
+    margin: 0;
+    padding: 0;
+    width: 600px;
+    height: 600px;
+    display: flex;
+    flex-direction: column; /* 垂直排列元件 */
+    overflow: hidden; /* 防止最外層出現 scroll bar */
+    font-family: "Microsoft JhengHei", "Heiti TC", "serif", "Arial";
+}
+
 /* ===== Header ===== */
 .header {
     display: flex;
@@ -16,11 +28,11 @@
 
 .header-actions img {
     margin-left: 8px;
-    transition: transform 0.1s;
+    transition: transform 0.2s;
 }
 
 .header-actions img:active {
-    transform: scale(0.9);
+    transform: scale(1.2);
 }
 
 /* 標題 */
@@ -28,7 +40,7 @@
     font-size: 18px;
     font-weight: bold;
     margin: 0;
-    color: #3f444a;
+    color: #4d4d4d;
     filter: drop-shadow(0 0 1px rgba(0,0,0,0.4));
 }
 
@@ -37,16 +49,18 @@
     width: 24px;
     height: 24px;
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    opacity: 0.5;
+    transition: opacity 0.4s;
+}
+
+#addTask:hover, #purgeFinished:hover, #openOptions:hover {
+    opacity: 1;
 }
 
 /* Add Task 面板樣式 */
 .add-task-panel {
     display: none; /* 由 JS 切換為 flex */
     padding: 10px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #ddd;
     gap: 10px;
     align-items: center;
     flex-shrink: 0; /* 確保面板不會被壓縮 */
@@ -59,20 +73,16 @@
     border-radius: 4px;
 }
 
-.add-task-panel button {
+.add-task-panel img {
     cursor: pointer;
     padding: 4px;
-    background-color: #e7ae4c;
-    border: 1px solid black;
-    border-radius: 3px;
+    width: 24px;
+    height: 24px;
     opacity: 0.5;
+    transition: opacity 0.1s;
 }
 
-.add-task-panel button:hover {
-    opacity: 1;
-}
-
-#addTask:hover, #purgeFinished:hover, #openOptions:hover {
+.add-task-panel img:hover {
     opacity: 1;
 }
 
@@ -80,8 +90,8 @@
   display: none;          /* 由 JS 控制為 flex */
   flex-shrink: 0;         /* 面板高度固定 */
   padding: 10px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  background: #4d4d4d;
+  border-bottom: 1px solid #000000;
   align-items: center;
   gap: 8px;
 }
@@ -91,34 +101,51 @@
     border-color: #1760bfe1;
 }
 
-/* ===== 整體 popup ===== */
-body {
-    margin: 0;
-    padding: 0;
-    width: 600px;
-    height: 500px; /* 維持固定總高度 */
+/* ===== 狀態列 ===== */
+.statusBar {
     display: flex;
-    flex-direction: column; /* 垂直排列元件 */
-    overflow: hidden; /* 防止最外層出現 scroll bar */
+    box-sizing: border-box;
+    background-color: #4d4d4d;
 }
 
-/* ===== 狀態列 ===== */
 .status {
-    flex-shrink: 0;
+    flex: 1;
     padding: 8px 12px;
     font-size: 16px;
     font-weight: bold;
-    border-bottom: 1px solid #ddd;
-    background-color: #d2d2d2;
-    -webkit-text-stroke: 0.1px black;
+    background-color: #4d4d4d;
+    /*-webkit-text-stroke: 0.1px black; */
 }
 
 .status.ok {
-    color: #0f5d29d9;
+    color: #13a700;
 }
 
 .status.error {
-    color: #d93125b9;
+    color: #cc3322;
+}
+
+.download_speed, .upload_speed { 
+    width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;    /* 如果文字太長顯示省略號 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #dddddd;
+    background-color: #4d4d4d;
+    transition: color 0.4s;
+}
+
+.download_speed:hover, .upload_speed:hover {
+    color: #ffffff;
+}
+
+#download, #upload {
+    padding-top: 8px;
+    width: 26px;
+    height: 26px;
 }
 
 /* ===== 任務列表 ===== */
@@ -128,40 +155,44 @@ body {
     margin: 0;
     padding: 0;
     list-style: none;
+    background-color: #4d4d4d;
 }
 
 /* ===== 單一任務卡片 ===== */
 .task {
     position: relative;
-    background-color: #d5d5d5f0;
+    background-color: #2d2d2d;
     border-radius: 6px;
     padding: 8px 10px;
     margin-top: 2px;
     margin-bottom: 2px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    color: #dddddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     font-size: 13px;
+    transition: background-color 0.4s;
 }
 
 /* hover 效果 */
 .task:hover {
-    background-color: #a5a5a5e0;
+    background-color: #1d1d1d;
 }
 
 /* ===== 任務標題 ===== */
 .task-title {
     font-weight: 600;
     margin-bottom: 4px;
-    padding-right: 26px; /* 預留刪除按鈕空間 */
+    padding-right: 45px; /* 預留刪除按鈕空間 */
+    text-overflow: ellipsis;    /* 如果文字太長顯示省略號 */
     word-break: break-word;
-    -webkit-text-stroke: 0.1px black;
+    -webkit-text-stroke: 0.1px #888;
 }
 
 /* ===== 任務資訊 ===== */
 .task-meta {
     font-size: 12px;
-    color: #424549;
+    color: #dddddd;
     margin: 1px 0;
-    -webkit-text-stroke: 0.1px black;
+    /* -webkit-text-stroke: 0.1px black; */
 }
 
 /* ===== 進度條 ===== */
@@ -182,19 +213,19 @@ body {
 
 /* downloading */
 .task[data-status="downloading"] .task-progress::-webkit-progress-value {
-    background-color: #1f77eedd;
+    background-color: #2688ff;
 }
 /* finished */
 .task[data-status="finished"] .task-progress::-webkit-progress-value {
-    background-color: #137333;
+    background-color: #13a700;
 }
 /* seeding */
 .task[data-status="seeding"] .task-progress::-webkit-progress-value {
-    background-color: #dd7735;
+    background-color: #e7aa44;
 }
 /* paused */
 .task[data-status="paused"] .task-progress::-webkit-progress-value {
-    background-color: #5f6368;
+    background-color: #cccccc;
 }
 /* error */
 .task[data-status="error"] .task-progress::-webkit-progress-value {
@@ -203,16 +234,16 @@ body {
 
 /* ===== 不同狀態顏色 ===== */
 .task[data-status="downloading"] .task-title {
-    color: #1f77eedd;
+    color: #2688ff;
 }
 .task[data-status="finished"] .task-title {
-    color: #137333;
+    color: #13a700;
 }
 .task[data-status="seeding"] .task-title {
-    color: #dd7735;
+    color: #e7aa44;
 }
 .task[data-status="paused"] .task-title {
-    color: #5f6368;
+    color: #cccccc;
 }
 .task[data-status="error"] .task-title {
     color: #cc3322;
@@ -220,24 +251,24 @@ body {
 
 /* ===== 刪除按鈕 ===== */
 .task-delete-btn {
+    cursor: pointer;
     position: absolute;
     top: 8px;
     right: 8px;
     width: 18px;
     height: 18px;
     opacity: 0.5;
-    cursor: pointer;
     transition: opacity 0.2s;
 }
 
 .task-action-btn {
+    cursor: pointer;
     position: absolute;
     top: 8px;
     right: 38px;
     width: 18px;
     height: 18px;
     opacity: 0.5;
-    cursor: pointer;
     transition: opacity 0.2s;
 }
 

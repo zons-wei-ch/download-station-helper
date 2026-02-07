@@ -1,4 +1,8 @@
+import * as UTIL from'./util.js';
+
 const statusEl = document.getElementById("status");
+const downloadEl = document.getElementById("download_speed");
+const uploadEl = document.getElementById("upload_speed");
 const taskListEl = document.getElementById("taskList");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -89,55 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initPopupWithRetry();
 });
 
-// ---------- 格式化函數 ----------
-function formatSpeed(bytesPerSec) {
-    if (typeof bytesPerSec !== "number" || bytesPerSec <= 0) return "–";
-    const kb = bytesPerSec / 1024;
-    return kb < 1024 ? `${kb.toFixed(1)} KB/s` : `${(kb / 1024).toFixed(2)} MB/s`;
-}
-
-function formatSize(bytes) {
-    if (typeof bytes !== "number" || bytes < 0) return "0 B";
-    if (bytes === 0) return "0 B";
-
-    const units = ["B", "KB", "MB", "GB", "TB"];
-    // 計算因數：floor(log(bytes) / log(1024))
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    
-    // 確保索引不會超出 units 範圍
-    const unitIndex = Math.min(i, units.length - 1);
-    
-    // 計算數值並根據單位決定小數點位數
-    const size = bytes / Math.pow(1024, unitIndex);
-    
-    // B 不需要小數點，其餘保留 2 位
-    return unitIndex === 0 
-        ? `${size} ${units[unitIndex]}` 
-        : `${size.toFixed(2)} ${units[unitIndex]}`;
-}
-
-// 計算進度
-function getProgress(task) {
-    if (task.status === "finished" || task.status === "seeding") return 100;
-    const downloaded = task.additional?.transfer?.size_downloaded ?? 0;
-    const total = task.size ?? 0;
-    if (total > 0) return Math.floor((downloaded / total) * 100);
-    return 0;
-}
-
-// 計算總上下傳速度
-function calcTotalSpeed(tasks) {
-    let totalDown = 0, totalUp = 0;
-    tasks.forEach(task => {
-        const transfer = task.additional?.transfer;
-        if (transfer) {
-        totalDown += transfer.speed_download ?? 0;
-        totalUp += transfer.speed_upload ?? 0;
-        }
-    });
-    return { totalDown, totalUp };
-}
-
 // ---------- 渲染任務 ----------
 function renderTasks(tasks) {
     taskListEl.innerHTML = "";
@@ -158,11 +113,13 @@ function renderTasks(tasks) {
         const downloaded = task.additional?.transfer?.size_downloaded ?? 0;
         const uploaded = task.additional?.transfer?.size_uploaded ?? 0;
         const ratio = downloaded > 0 ? (uploaded / downloaded).toFixed(2) : "-";
-        metaTop.textContent = `${task.status} ⏺︎ Ratio: ${ratio}`;
+        let statusText = task.status;
+        if (task.status === "error") statusText += ` ⏺︎ ${task.status_extra?.error_detail}`;
+        metaTop.textContent = `${statusText} ⏺︎ Ratio: ${ratio}`;
 
         // 進度條
         const progress = document.createElement("progress");
-        progress.value = getProgress(task);
+        progress.value = UTIL.getProgress(task);
         progress.max = 100;
         progress.className = "task-progress";
 
@@ -172,7 +129,7 @@ function renderTasks(tasks) {
         const size = task.size ?? 0;
         const speedDown = task.additional?.transfer?.speed_download ?? 0;
         const speedUp = task.additional?.transfer?.speed_upload ?? 0;
-        metaBottom.textContent = `${formatSize(size)} ⏺︎ ${progress.value}% ⏺︎ Dn: ${formatSpeed(speedDown)} ⏺︎ Up: ${formatSpeed(speedUp)}`;
+        metaBottom.textContent = `${UTIL.formatSize(size)} ⏺︎ ${progress.value}% ⏺︎ D: ${UTIL.formatSpeed(speedDown)} ⏺︎ U: ${UTIL.formatSpeed(speedUp)}`;
 
         /* ===== 動作按鈕容器 ===== */
         const actions = document.createElement("div");
@@ -186,8 +143,8 @@ function renderTasks(tasks) {
             startBtn.title = "Resume Task";
             startBtn.className = "task-action-btn";
             startBtn.style.cursor = "pointer";
-            startBtn.style.width = "20px";
-            startBtn.style.height = "20px";
+            startBtn.style.width = "24px";
+            startBtn.style.height = "24px";
             startBtn.style.marginLeft = "10px";
             startBtn.onclick = e => {
                 e.stopPropagation();
@@ -207,8 +164,8 @@ function renderTasks(tasks) {
             pauseBtn.title = "Pause Task";
             pauseBtn.className = "task-action-btn";
             pauseBtn.style.cursor = "pointer";
-            pauseBtn.style.width = "20px";
-            pauseBtn.style.height = "20px";
+            pauseBtn.style.width = "24px";
+            pauseBtn.style.height = "24px";
             pauseBtn.style.marginLeft = "10px";
             pauseBtn.onclick = e => {
                 e.stopPropagation();
@@ -227,8 +184,8 @@ function renderTasks(tasks) {
         delBtn.title = "Delete Task";
         delBtn.className = "task-delete-btn";
         delBtn.style.cursor = "pointer";
-        delBtn.style.width = "20px";
-        delBtn.style.height = "20px";
+        delBtn.style.width = "24px";
+        delBtn.style.height = "24px";
         delBtn.style.marginLeft = "10px";
 
         delBtn.onclick = (e) => {
@@ -261,8 +218,10 @@ function renderTasks(tasks) {
 }
 
 function updateStatus(tasks) {
-    const { totalDown, totalUp } = calcTotalSpeed(tasks);
-    statusEl.textContent = `✅ DSM Connected ⬇️: ${formatSpeed(totalDown)} ⬆️: ${formatSpeed(totalUp)}`;
+    const { totalDown, totalUp } = UTIL.calcTotalSpeed(tasks);
+    statusEl.textContent = `✅ DSM Online...`;
+    downloadEl.textContent = `${UTIL.formatSpeed(totalDown)}`;
+    uploadEl.textContent = `${UTIL.formatSpeed(totalUp)}`;
     statusEl.className = "status ok";
 }
 
@@ -283,6 +242,7 @@ function wakeBackground(retries = 5) {
 }
 
 async function initPopupWithRetry(retries = 3) {
+    statusEl.className = "status error";
     statusEl.textContent = "Waking background...";
 
     try {
@@ -294,7 +254,7 @@ async function initPopupWithRetry(retries = 3) {
             updateStatus(res.tasks);
             renderTasks(res.tasks);
         } else {
-            statusEl.textContent = "❌ NAS Not Connected";
+            statusEl.textContent = "❌ DSM Offline...";
         }
     } catch (e) {
         if (retries > 0) {
@@ -305,11 +265,12 @@ async function initPopupWithRetry(retries = 3) {
     }
 }
 
-
 chrome.runtime.onMessage.addListener(msg => {
     if (msg.action === "tasksUpdated") {
         console.log("tasksUpdated: " + String(msg.success));
-        updateStatus(msg.tasks);
-        renderTasks(msg.tasks);
+        if (msg.success) {
+            updateStatus(msg.tasks);
+            renderTasks(msg.tasks);
+        }
     }
 });
