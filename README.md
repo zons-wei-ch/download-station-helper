@@ -26,14 +26,15 @@ Flexbox Layout: Precision UI control in the popup to ensure status text and spee
 Synology WebAPI (v3/v6): Communicates directly with DSM, featuring robust session (SID) management and automatic re-login logic.
 
 📂 File Structure
-Plaintext:
-⏺︎ manifest.json         # Extension manifest (MV3)
-⏺︎ background.js         # Service Worker for polling & badge updates
-⏺︎ dsm_api.js            # Encapsulated Synology WebAPI logic
-⏺︎ content.js            # Content script for magnet link interception
-⏺︎ popup.html/js/css     # Toolbar popup interface
-⏺︎ util.js               # Shared utilities (Size/Speed formatting, Error codes)
-⏺︎ icons/                # Extension icons and UI assets
+
+File Structure Plaintext: 
+    ● manifest.json     # Extension manifest (MV3) 
+    ● background.js     # Service Worker for polling & badge updates 
+    ● dsm_api.js        # Encapsulated Synology WebAPI logic 
+    ● content.js        # Content script for magnet link interception
+    ● popup.html/js/css # Toolbar popup interface 
+    ● util.js           # Shared utilities (Size/Speed formatting, Error codes) 
+    ● icons/            # Extension icons and UI assets
 
 📦 Installation
 Download or clone this repository to your local machine.
