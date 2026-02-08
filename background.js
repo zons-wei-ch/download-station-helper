@@ -52,9 +52,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         refreshTasks();
     } 
     else if (msg.action === "login") {
+        state.sid = null;       // 強制清除舊連線
+        state.isLogin = false;
         DSM_API.loginDSM(state)
             .then(() => sendResponse({ success: true }))
-            .catch(err => sendResponse({ success: false, error: err.message }));
+            .catch(err => {
+                console.error("Login test failed:", err);
+                sendResponse({ success: false, error: err.message });
+            });
     }
     else if (msg.action === "getLatestTasks") {
         sendResponse({ success: state.isLogin, tasks: state.latestTasks });
@@ -88,9 +93,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 chrome.storage.onChanged.addListener(async (changes, areaName) => {
     if (areaName === "sync") {
         if (changes.host || changes.account || changes.password) {
-            state.sid = null; 
-            state.isLogin = false;
-            await refreshTasks();
+            console.log("Settings changed, resetting session...");
+            state.sid = null;       // 徹底清空舊 SID
+            state.isLogin = false;  // 重置登入狀態
+            
+            // 延遲一下再刷新，避免與 options.js 的測試連線衝突
+            setTimeout(() => {
+                refreshTasks();
+            }, 500);
         }
         else if (changes.refreshInterval) {
             setupAlarm();

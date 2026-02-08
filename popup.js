@@ -1,6 +1,7 @@
 import * as UTIL from'./util.js';
 
 const statusEl = document.getElementById("status");
+const stateEl = document.getElementById("state");
 const downloadEl = document.getElementById("download_speed");
 const uploadEl = document.getElementById("upload_speed");
 const taskListEl = document.getElementById("taskList");
@@ -50,13 +51,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const taskUrlInput = document.getElementById("taskUrl");
     // 點擊新增任務
     addTaskBtn.addEventListener("click", () => {
-        const isActive = addTaskContainer.classList.toggle("active");
-        // 根據 class 來決定顯示與否，最為穩定
-        if (isActive) {
-            addTaskContainer.style.display = "flex";
-            taskUrlInput.focus();
-        } else {
-            addTaskContainer.style.display = "none";
+        // 使用 classList 切換，觸發 CSS transition
+        addTaskContainer.classList.toggle("show");
+
+        // 如果面板打開了，自動聚焦輸入框
+        if (addTaskContainer.classList.contains("show")) {
+            setTimeout(() => taskUrlInput.focus(), 200);
         }
     });
     // 點擊 Apply 按鈕送出網址
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 addTaskContainer.classList.remove("active");
                 addTaskContainer.style.display = "none";
                 taskUrlInput.value = "";
-                statusEl.textContent = "✅ Task added!";
+                statusEl.textContent = "Task added!";
             }
         });
     });
@@ -112,14 +112,18 @@ function renderTasks(tasks) {
         metaTop.className = "task-meta";
         const downloaded = task.additional?.transfer?.size_downloaded ?? 0;
         const uploaded = task.additional?.transfer?.size_uploaded ?? 0;
-        const ratio = downloaded > 0 ? (uploaded / downloaded).toFixed(2) : "-";
+        const ratio = downloaded > 0 ? Math.floor((uploaded / downloaded) * 100): "-";
         let statusText = task.status;
-        if (task.status === "error") statusText += ` ⏺︎ ${task.status_extra?.error_detail}`;
-        metaTop.textContent = `${statusText} ⏺︎ Ratio: ${ratio}`;
+        if (task.status === "error") statusText += ` ／ ${task.status_extra?.error_detail}`;
+        metaTop.textContent = `${statusText} ／ Ratio: ${ratio}％`;
 
         // 進度條
         const progress = document.createElement("progress");
-        progress.value = UTIL.getProgress(task);
+        const progresRate = UTIL.getProgress(task);
+        if (["seeding"].includes(task.status)) 
+            progress.value = ratio;
+        else
+            progress.value = progresRate;
         progress.max = 100;
         progress.className = "task-progress";
 
@@ -129,7 +133,7 @@ function renderTasks(tasks) {
         const size = task.size ?? 0;
         const speedDown = task.additional?.transfer?.speed_download ?? 0;
         const speedUp = task.additional?.transfer?.speed_upload ?? 0;
-        metaBottom.textContent = `${UTIL.formatSize(size)} ⏺︎ ${progress.value}% ⏺︎ D: ${UTIL.formatSpeed(speedDown)} ⏺︎ U: ${UTIL.formatSpeed(speedUp)}`;
+        metaBottom.textContent = `${UTIL.formatSize(size)} ／ ${progresRate}％ ／ D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
 
         /* ===== 動作按鈕容器 ===== */
         const actions = document.createElement("div");
@@ -219,7 +223,8 @@ function renderTasks(tasks) {
 
 function updateStatus(tasks) {
     const { totalDown, totalUp } = UTIL.calcTotalSpeed(tasks);
-    statusEl.textContent = `✅ DSM Online...`;
+    statusEl.textContent = "DSM Online...";
+    stateEl.src = 'icons/connected.png';
     downloadEl.textContent = `${UTIL.formatSpeed(totalDown)}`;
     uploadEl.textContent = `${UTIL.formatSpeed(totalUp)}`;
     statusEl.className = "status ok";
@@ -244,23 +249,25 @@ function wakeBackground(retries = 5) {
 async function initPopupWithRetry(retries = 3) {
     statusEl.className = "status error";
     statusEl.textContent = "Waking background...";
+    stateEl.src = 'icons/wait.png';
 
     try {
         await wakeBackground(); // ⭐ 先確保 background 活著
-
         const res = await chrome.runtime.sendMessage({ action: "getLatestTasks" });
 
         if (res?.success) {
             updateStatus(res.tasks);
             renderTasks(res.tasks);
         } else {
-            statusEl.textContent = "❌ DSM Offline...";
+            statusEl.textContent = "DSM Offline...";
+            stateEl.src = 'icons/alert.png';
         }
     } catch (e) {
         if (retries > 0) {
             setTimeout(() => initPopupWithRetry(retries - 1), 2000);
         } else {
-            statusEl.textContent = "❌ Background not responding";
+            statusEl.textContent = "Background not responding";
+            stateEl.src = 'icons/alert.png';
         }
     }
 }

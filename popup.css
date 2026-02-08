@@ -5,9 +5,10 @@ body {
     width: 600px;
     height: 600px;
     display: flex;
-    flex-direction: column; /* 垂直排列元件 */
-    overflow: hidden; /* 防止最外層出現 scroll bar */
+    flex-direction: column;     /* 垂直排列元件 */
+    overflow: hidden;           /* 防止最外層出現 scroll bar */
     font-family: "Microsoft JhengHei", "Heiti TC", "serif", "Arial";
+    user-select: none;          /* 不可選取文字 */
 }
 
 /* ===== Header ===== */
@@ -16,8 +17,8 @@ body {
     align-items: center;          /* 垂直置中 */
     justify-content: space-between; /* 左右分開 */
     padding: 8px 12px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #ddd;
+    background-color: #ededed;
+    border-bottom: 1px solid #aaaaaa;
 }
 
 .header-actions {
@@ -59,11 +60,27 @@ body {
 
 /* Add Task 面板樣式 */
 .add-task-panel {
-    display: none; /* 由 JS 切換為 flex */
-    padding: 10px;
-    gap: 10px;
+    display: flex;          /* 始終保持 flex，改用高度控制顯示 */
     align-items: center;
-    flex-shrink: 0; /* 確保面板不會被壓縮 */
+    gap: 10px;
+    background-color: #4d4d4d;
+    
+    /* ⭐ 動畫核心設定 */
+    max-height: 0;           /* 初始高度為 0 */
+    opacity: 0;              /* 初始透明 */
+    overflow: hidden;        /* 隱藏溢出內容 */
+    padding: 0 12px;         /* 上下 padding 設為 0 */
+    border-bottom: 0px solid #000000;
+    
+    /* 設定哪些屬性要跑動畫 */
+    transition: max-height 0.3s ease-in-out, opacity 0.3s ease, padding 0.3s ease;
+}
+
+.add-task-panel.show {
+    max-height: 50px;        /* 展開後的高度 (根據你的 input 大小調整) */
+    opacity: 1;              /* 顯示內容 */
+    padding: 10px 12px;      /* 恢復 padding */
+    border-bottom: 1px solid #000000;
 }
 
 .add-task-panel input {
@@ -86,26 +103,16 @@ body {
     opacity: 1;
 }
 
-#addTaskContainer {
-  display: none;          /* 由 JS 控制為 flex */
-  flex-shrink: 0;         /* 面板高度固定 */
-  padding: 10px;
-  background: #4d4d4d;
-  border-bottom: 1px solid #000000;
-  align-items: center;
-  gap: 8px;
-}
-
-#addTaskContainer input:focus {
-    outline: none;
-    border-color: #1760bfe1;
-}
-
 /* ===== 狀態列 ===== */
 .statusBar {
     display: flex;
     box-sizing: border-box;
     background-color: #4d4d4d;
+    transition: background-color 0.4s;
+}
+
+.statusBar:hover {
+    background-color: #2d2d2d;
 }
 
 .status {
@@ -113,16 +120,15 @@ body {
     padding: 8px 12px;
     font-size: 16px;
     font-weight: bold;
-    background-color: #4d4d4d;
     /*-webkit-text-stroke: 0.1px black; */
 }
 
 .status.ok {
-    color: #13a700;
+    color: #599966;
 }
 
 .status.error {
-    color: #cc3322;
+    color: #ff4433;
 }
 
 .download_speed, .upload_speed { 
@@ -134,7 +140,6 @@ body {
     justify-content: center;
     font-size: 14px;
     color: #dddddd;
-    background-color: #4d4d4d;
     transition: color 0.4s;
 }
 
@@ -142,10 +147,11 @@ body {
     color: #ffffff;
 }
 
-#download, #upload {
-    padding-top: 8px;
-    width: 26px;
-    height: 26px;
+#state, #download, #upload {
+    padding-top: 4px;
+    padding-left: 2px;
+    width: 32px;
+    height: 32px;
 }
 
 /* ===== 任務列表 ===== */
@@ -156,6 +162,26 @@ body {
     padding: 0;
     list-style: none;
     background-color: #4d4d4d;
+}
+
+/* 自訂任務列表的捲軸軌道與滑塊 */
+.task-list::-webkit-scrollbar {
+    width: 4px;               /* 讓捲軸變細 (預設通常是 12-15px) */
+}
+
+.task-list::-webkit-scrollbar-track {
+    background: transparent;  /* 軌道透明，看起來更清爽 */
+}
+
+.task-list::-webkit-scrollbar-thumb {
+    background-color: #999;   /* 捲軸滑塊顏色 */
+    border-radius: 8px;         /* 圓角讓它看起來不生硬 */
+    border: 2px solid transparent; /* 增加一點邊距感 */
+    transition: background-color 0.3s;
+}
+
+.task-list::-webkit-scrollbar-thumb:hover {
+    background-color: #666;   /* 滑鼠懸停時加深顏色 */
 }
 
 /* ===== 單一任務卡片 ===== */
