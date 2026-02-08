@@ -29,11 +29,17 @@ Synology WebAPI (v3/v6): Communicates directly with DSM, featuring robust sessio
 
 File Structure Plaintext: 
     ● manifest.json     # Extension manifest (MV3) 
+    
     ● background.js     # Service Worker for polling & badge updates 
+    
     ● dsm_api.js        # Encapsulated Synology WebAPI logic 
+    
     ● content.js        # Content script for magnet link interception
+    
     ● popup.html/js/css # Toolbar popup interface 
+    
     ● util.js           # Shared utilities (Size/Speed formatting, Error codes) 
+    
     ● icons/            # Extension icons and UI assets
 
 📦 Installation
