@@ -19,27 +19,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (purgeBtn) {
         purgeBtn.addEventListener("click", () => {
             // 先取得目前的任務列表（從畫面或快取）
-            chrome.runtime.sendMessage({ action: "getLatestTasks" }, (res) => {
+            chrome.runtime.sendMessage({ action: "getLatestTasks" }, async (res) => {
                 if (!res || !res.tasks) return;
 
                 // 過濾出狀態為 finished 的任務
                 const finishedTasks = res.tasks.filter(t => t.status === "finished");
-
                 if (finishedTasks.length === 0) {
-                    alert("No finished task.");
+                    UTIL.showNotify("No tasks to clear", "info");
                     return;
                 }
 
-                if (confirm(`Purge ${finishedTasks.length} finished task？`)) {
+                const confirmed = await UTIL.showConfirm(
+                    "Purge Tasks?", 
+                    `Remove ${finishedTasks.length} finished tasks?`
+                );
+                if (confirmed) {
                     finishedTasks.forEach(task => {
-                        chrome.runtime.sendMessage({
-                            action: "deleteTask",
-                            taskId: task.id,
-                            deleteFile: true // 清理通常只刪除清單，保留檔案
-                        });
+                        chrome.runtime.sendMessage({ action: "deleteTask", taskId: task.id });
                     });
-                    // 點擊後顯示處理中文字
-                    statusEl.textContent = "Purging...";
+                    UTIL.showNotify("Tasks Purged");
                 }
             });
         });
@@ -64,8 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const url = taskUrlInput.value.trim();
         if (!url) {
             // 如果沒填，直接關閉面板
-            addTaskContainer.classList.remove("active");
-            addTaskContainer.style.display = "none";
+            addTaskContainer.classList.toggle("show");
             return;
         }
 
@@ -75,11 +72,12 @@ document.addEventListener("DOMContentLoaded", () => {
             applyTaskBtn.disabled = false;
             if (res?.success) {
                 // 成功後務必移除 active 並隱藏
-                addTaskContainer.classList.remove("active");
-                addTaskContainer.style.display = "none";
+                addTaskContainer.classList.toggle("show");
                 taskUrlInput.value = "";
-                statusEl.textContent = "Task added!";
+                UTIL.showNotify("Task added !");
             }
+            else
+                UTIL.showNotify("Failed to add !", "error");
         });
     });
 
@@ -94,7 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ---------- 渲染任務 ----------
-function renderTasks(tasks) {
+async function renderTasks(tasks) {
+    tasks = await UTIL.sortTasks(tasks);
+    //console.log(tasks);
     taskListEl.innerHTML = "";
 
     tasks.forEach(task => {
@@ -106,16 +106,31 @@ function renderTasks(tasks) {
         const title = document.createElement("div");
         title.className = "task-title";
         title.textContent = task.title || task.name || "No Title";
+        // ----
+        
+        // 狀態 + icon + Ratio
+        const metaRatioIcon = document.createElement("img");
+        metaRatioIcon.src = "icons/ratio.png";
+        metaRatioIcon.style.width = '16px';
+        metaRatioIcon.style.height = 'auto';
+        metaRatioIcon.style.marginLeft = "10px";
+        metaRatioIcon.style.marginRight = "10px";
 
-        // 狀態 + Ratio
-        const metaTop = document.createElement("div");
-        metaTop.className = "task-meta";
+        const metaRatioValue = document.createElement("div");
         const downloaded = task.additional?.transfer?.size_downloaded ?? 0;
         const uploaded = task.additional?.transfer?.size_uploaded ?? 0;
-        const ratio = downloaded > 0 ? Math.floor((uploaded / downloaded) * 100): "-";
+        const ratio = downloaded > 0 ? UTIL.roundTo((uploaded / downloaded) * 100, 1): "-";
+        metaRatioValue.textContent = `${ratio}％`;
+
+        const metaTop = document.createElement("div");
+        metaTop.className = "task-meta";
         let statusText = task.status;
         if (task.status === "error") statusText += ` ／ ${task.status_extra?.error_detail}`;
-        metaTop.textContent = `${statusText} ／ Ratio: ${ratio}％`;
+        metaTop.textContent = `${statusText}`;
+
+        metaTop.appendChild(metaRatioIcon);
+        metaTop.appendChild(metaRatioValue);
+        // ----
 
         // 進度條
         const progress = document.createElement("progress");
@@ -126,16 +141,43 @@ function renderTasks(tasks) {
             progress.value = progresRate;
         progress.max = 100;
         progress.className = "task-progress";
+        // ----
+        
+        // 容量 / icon / 完成度 / 速度
+        const metaProgressIcon = document.createElement("img");
+        metaProgressIcon.src = "icons/progress.png";
+        metaProgressIcon.style.width = '16px';
+        metaProgressIcon.style.height = 'auto';
+        metaProgressIcon.style.marginLeft = "10px";
+        metaProgressIcon.style.marginRight = "10px";
 
-        // 容量 / 速度
+        const metaProgressValue = document.createElement("div");
+        metaProgressValue.textContent = `${progresRate}％`;
+        
+        const metaSpeedIcon = document.createElement("img");
+        metaSpeedIcon.src = "icons/speed.png";
+        metaSpeedIcon.style.width = '16px';
+        metaSpeedIcon.style.height = 'auto';
+        metaSpeedIcon.style.marginLeft = "10px";
+        metaSpeedIcon.style.marginRight = "10px";
+
+        const metaSpeedValue = document.createElement("div");
+        const speedDown = task.additional?.transfer?.speed_download ?? 0;
+        const speedUp = task.additional?.transfer?.speed_upload ?? 0;
+        metaSpeedValue.textContent = `D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
+
         const metaBottom = document.createElement("div");
         metaBottom.className = "task-meta";
         const size = task.size ?? 0;
-        const speedDown = task.additional?.transfer?.speed_download ?? 0;
-        const speedUp = task.additional?.transfer?.speed_upload ?? 0;
-        metaBottom.textContent = `${UTIL.formatSize(size)} ／ ${progresRate}％ ／ D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
+        metaBottom.textContent = `${UTIL.formatSize(size)}`;
+        
+        metaBottom.appendChild(metaProgressIcon);
+        metaBottom.appendChild(metaProgressValue);
+        metaBottom.appendChild(metaSpeedIcon);
+        metaBottom.appendChild(metaSpeedValue);
+        // ----
 
-        /* ===== 動作按鈕容器 ===== */
+        // 動作按鈕容器
         const actions = document.createElement("div");
         actions.className = "task-actions";
 
@@ -192,19 +234,20 @@ function renderTasks(tasks) {
         delBtn.style.height = "24px";
         delBtn.style.marginLeft = "10px";
 
-        delBtn.onclick = (e) => {
-            if (confirm(`Delete task "${task.title}", confirm ？`)) {
-                e.stopPropagation();
+        delBtn.onclick = async(e) => {
+            const confirmed = await UTIL.showConfirm(
+                "Delete Task?",
+                `Are you sure to delete: "${task.title}"?`
+            );
 
-                chrome.runtime.sendMessage({
-                    action: "deleteTask",
-                    taskId: task.id,
-                    deleteFile: true
-                }, res => {
-                    if
-                        (res?.success) li.remove();
-                    else
-                        alert("Delete failed：" + (res?.error || ""));
+            if (confirmed) {
+                chrome.runtime.sendMessage({ action: "deleteTask", taskId: task.id }, (res) => {
+                    if (res?.success) {
+                        UTIL.showNotify("Deleted");
+                        li.remove();
+                    } else {
+                        UTIL.showError("Delete Failed", res?.error);
+                    }
                 });
             }
         };

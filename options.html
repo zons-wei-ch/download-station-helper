@@ -1,61 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>DSM Setting</title>
-  <link rel="stylesheet" href="options.css" />
+    <meta charset="UTF-8" />
+    <title>DSM Setting</title>
+    <link rel="stylesheet" href="options.css" />
+    <script src="lib/sweetalert2.all.min.js"></script>
 </head>
 <body>
     <div class="options-container">
-        <div>
-        <h2>Synology DSM Setting</h2>
-        </div>
+        <header>
+            <h2>DSM Setting</h2>
+        </header>
 
-        <div>
-        <label>Host:
-            <input type="text" id="host" placeholder="[ip:5000] [quick:5001]">
-        </label>
-        </div>
-
-        <div>
-        <label>Account:
-            <input type="text" id="account">
-        </label>
-        </div>
-
-        <div>
-        <label>Password:
-            <div style="display: flex; flex: 1; position: relative;">
-            <input type="password" id="password" style="margin-left: 10px; width: 100%;">
-            <button id="togglePassword" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center;">
-                <img id="eyeIcon" src="icons/view.png" style="width: 20px; height: 20px;">
-            </button>
+        <section class="config-section">
+            <div class="field-group">
+                <label for="host">Host</label>
+                <input type="text" id="host" placeholder="[ip:5000] [quick:5001]">
             </div>
-        </label>
-        </div>
 
-        <div>
-        <label>Refresh Interval：
-            <select id="refreshInterval">
-            <option value="1000">1 s</option>
-            <option value="3000">3 s</option>
-            <option value="5000">5 s</option>
-            <option value="10000">10 s</option>
-            <option value="15000">15 s</option>
-            <option value="30000">30 s</option>
-            <option value="45000">45 s</option>
-            <option value="60000">60 s</option>
-            </select>
-        </label>
-        </div>
+            <div class="field-group">
+                <label for="account">Account</label>
+                <input type="text" id="account">
+            </div>
 
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-            <button id="testConnection" style="flex: 1; background-color: #5f6368; color: white; border: none; border-radius: 4px; padding: 10px; cursor: pointer;">Test Connection</button>
-            <button id="save" style="flex: 2;">Save</button>
-        </div>
+            <div class="field-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password">
+                    <button id="togglePassword" type="button" class="icon-button">
+                        <img id="eyeIcon" src="icons/view.png" alt="Toggle Visibility">
+                    </button>
+                </div>
+            </div>
 
-        <div id="status"></div>
+            <div class="field-group">
+                <label for="refreshInterval">Refresh Interval</label>
+                <select id="refreshInterval">
+                    <option value="1000">1 s</option>
+                    <option value="2000">2 s</option>
+                    <option value="3000">3 s</option>
+                    <option value="4000">4 s</option>
+                    <option value="5000">5 s</option>
+                    <option value="10000">10 s</option>
+                    <option value="30000">30 s</option>
+                    <option value="60000">60 s</option>
+                </select>
+            </div>
+
+            <button id="testConnection" class="secondary-button">Test Connection</button>
+        </section>
+
+        <section class="sort-section">
+            <div class="section-header">
+                <h3>Task Sorting</h3>
+                <input type="checkbox" id="enableSort" class="large-checkbox">
+            </div>
+            
+            <div id="sortControls" class="sort-controls">
+                <div class="field-group">
+                    <label for="sortField">Sort By</label>
+                    <select id="sortField">
+                        <option value="time">Create Time</option>
+                        <option value="title">Name</option>
+                        <option value="size">Size</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="sortOrder">Order</label>
+                    <select id="sortOrder">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <button id="save" class="primary-button">Save Settings</button>
+        </footer>
     </div>
-    <script src="options.js"></script>
+    <script type="module" src="options.js"></script>
 </body>
 </html>

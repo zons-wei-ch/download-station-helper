@@ -1,82 +1,145 @@
-/* 全頁面居中 */
+/* options.css */
+:root {
+    --primary-color: #2688ff;
+    --primary-hover: #1e70d6;
+    --bg-color: #888;
+    --card-bg: #444;
+    --text-main: #aaa;
+    --text-muted: #aaa;
+    --border-color: #e0e0e0;
+}
+
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f9f9f9;
-  color: #202124;
-
-  display: flex;
-  justify-content: center;  /* 水平置中 */
-  align-items: center;      /* 垂直置中 */
-  height: 100vh;            /* 滿版高度 */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* 設定表單容器 */
 .options-container {
-  width: 100%;
-  max-width: 600px;         /* 限制寬度 */
-  background-color: #7272726e;
-  padding: 20px 30px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  border-radius: 8px;
-  box-sizing: border-box;
+    width: 450px;
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* 每個設定區塊 */
-.options-container div {
-  margin: 10px 0;           /* 上下間距 10px */
+header h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 22px;
+    color: var(--primary-color);
+    text-align: center;
 }
 
-/* Label 與輸入框排列 */
+section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.field-group {
+    margin-bottom: 15px;
+}
+
 label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  width: 100%;
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
 }
 
-/* Input / Select 美化 */
 input[type="text"],
 input[type="password"],
 select {
-  flex: 1;
-  padding: 6px 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-left: 10px;
-  transition: border 0.2s;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* 輸入框聚焦效果 */
-input[type="text"]:focus,
-input[type="password"]:focus,
-select:focus {
-  border-color: #1a73e8;
-  outline: none;
-  box-shadow: 0 0 3px rgba(26, 115, 232, 0.4);
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(38, 136, 255, 0.1);
 }
 
-/* 儲存按鈕 */
-button#save {
-  width: 100%;
-  padding: 10px 0;
-  background-color: #1961c0;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+/* 密碼欄位特別處理 */
+.password-wrapper {
+    position: relative;
+    display: flex;
 }
 
-button#save:hover {
-  background-color: #1669c1;
+.icon-button {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    opacity: 0.6;
 }
 
-/* 下拉選單 */
-select {
-  cursor: pointer;
+.icon-button:hover { opacity: 1; }
+.icon-button img { width: 18px; height: 18px; }
+
+/* 按鈕樣式 */
+button {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 12px;
+    border: none;
+    transition: all 0.2s;
+}
+
+.primary-button {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: #444;
+}
+
+.primary-button:hover { background-color: var(--primary-hover); }
+
+.secondary-button {
+    width: 100%;
+    background-color: #bbb;
+    color: #444;
+    margin-top: 10px;
+}
+
+.secondary-button:hover { background-color: #888; }
+
+/* 排序區塊 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-header h3 { margin: 0; font-size: 16px; }
+
+.large-checkbox {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.sort-controls {
+    transition: opacity 0.3s ease;
 }

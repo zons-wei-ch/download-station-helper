@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "download station helper",
-    "version": "1.0",
+    "version": "1.1",
     "description": "handle tasks for download station",
     "permissions": [
         "storage",
@@ -27,8 +27,15 @@
     },
     "content_scripts": [
         {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
+            "matches": ["<all_urls>"],
+            "js": ["lib/sweetalert2.all.min.js", "content.js"],
+            "run_at": "document_idle"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "matches": ["<all_urls>"],
+            "resources": ["lib/sweetalert2.all.min.js"]
         }
     ],
     "options_page": "options.html"

@@ -174,14 +174,14 @@ body {
 }
 
 .task-list::-webkit-scrollbar-thumb {
-    background-color: #999;   /* 捲軸滑塊顏色 */
+    background-color: #aaa;   /* 捲軸滑塊顏色 */
     border-radius: 8px;         /* 圓角讓它看起來不生硬 */
     border: 2px solid transparent; /* 增加一點邊距感 */
     transition: background-color 0.3s;
 }
 
 .task-list::-webkit-scrollbar-thumb:hover {
-    background-color: #666;   /* 滑鼠懸停時加深顏色 */
+    background-color: #888;   /* 滑鼠懸停時加深顏色 */
 }
 
 /* ===== 單一任務卡片 ===== */
@@ -189,9 +189,9 @@ body {
     position: relative;
     background-color: #2d2d2d;
     border-radius: 6px;
-    padding: 8px 10px;
+    padding: 5px 0px;
     margin-top: 2px;
-    margin-bottom: 2px;
+    margin-bottom: 0px;
     color: #dddddd;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     font-size: 13px;
@@ -207,7 +207,7 @@ body {
 .task-title {
     font-weight: 600;
     margin-bottom: 4px;
-    padding-right: 45px; /* 預留刪除按鈕空間 */
+    padding-right: 60px; /* 預留刪除按鈕空間 */
     text-overflow: ellipsis;    /* 如果文字太長顯示省略號 */
     word-break: break-word;
     -webkit-text-stroke: 0.1px #888;
@@ -215,6 +215,7 @@ body {
 
 /* ===== 任務資訊 ===== */
 .task-meta {
+    display: flex;
     font-size: 12px;
     color: #dddddd;
     margin: 1px 0;
@@ -239,11 +240,11 @@ body {
 
 /* downloading */
 .task[data-status="downloading"] .task-progress::-webkit-progress-value {
-    background-color: #2688ff;
+    background-color: #1199dd;
 }
 /* finished */
 .task[data-status="finished"] .task-progress::-webkit-progress-value {
-    background-color: #13a700;
+    background-color: #55aa66;
 }
 /* seeding */
 .task[data-status="seeding"] .task-progress::-webkit-progress-value {
@@ -260,10 +261,10 @@ body {
 
 /* ===== 不同狀態顏色 ===== */
 .task[data-status="downloading"] .task-title {
-    color: #2688ff;
+    color: #1199dd;
 }
 .task[data-status="finished"] .task-title {
-    color: #13a700;
+    color: #55aa66;
 }
 .task[data-status="seeding"] .task-title {
     color: #e7aa44;
