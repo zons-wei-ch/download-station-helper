@@ -38,14 +38,11 @@ body {
 
 /* 標題 */
 .header h1 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     margin: 0;
     color: #444;
-    text-shadow: 
-        2px 2px 0px #bbb,
-        4px 4px 0px #888,
-        6px 6px 10px #66666680; /* 最後一層加模糊做落下的投影 */
+    text-shadow: 4px 4px 4px #888;
 }
 
 
