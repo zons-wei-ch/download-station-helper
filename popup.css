@@ -41,9 +41,13 @@ body {
     font-size: 18px;
     font-weight: bold;
     margin: 0;
-    color: #4d4d4d;
-    filter: drop-shadow(0 0 1px rgba(0,0,0,0.4));
+    color: #444;
+    text-shadow: 
+        2px 2px 0px #bbb,
+        4px 4px 0px #888,
+        6px 6px 10px #66666680; /* 最後一層加模糊做落下的投影 */
 }
+
 
 /* 設定圖示 */
 #purgeFinished, #openOptions, #addTask {

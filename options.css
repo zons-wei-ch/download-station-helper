@@ -1,16 +1,16 @@
 /* options.css */
 :root {
-    --primary-color: #2688ff;
-    --primary-hover: #1e70d6;
-    --bg-color: #888;
+    --primary-color: #44aaff;
+    --primary-hover: #1188dd;
+    --bg-color: #aaa;
     --card-bg: #444;
-    --text-main: #aaa;
-    --text-muted: #aaa;
+    --text-main: #bbb;
+    --text-muted: #ddd;
     --border-color: #e0e0e0;
 }
 
 body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Microsoft JhengHei", "Heiti TC", "serif", "Arial";
     margin: 0;
     padding: 0;
     background-color: var(--bg-color);
@@ -31,15 +31,15 @@ body {
 
 header h2 {
     margin-top: 0;
-    margin-bottom: 25px;
-    font-size: 22px;
+    margin-bottom: 15px;
+    font-size: 24px;
     color: var(--primary-color);
     text-align: center;
 }
 
 section {
-    margin-bottom: 25px;
-    padding-bottom: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -112,7 +112,10 @@ button {
     color: #444;
 }
 
-.primary-button:hover { background-color: var(--primary-hover); }
+.primary-button:hover {
+    background-color: var(--primary-hover);
+    color: #ddd;
+}
 
 .secondary-button {
     width: 100%;
@@ -121,7 +124,10 @@ button {
     margin-top: 10px;
 }
 
-.secondary-button:hover { background-color: #888; }
+.secondary-button:hover {
+    background-color: #888;
+    color: #ddd;
+}
 
 /* 排序區塊 */
 .section-header {
