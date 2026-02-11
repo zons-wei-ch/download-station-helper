@@ -42,9 +42,15 @@ body {
     font-weight: bold;
     margin: 0;
     color: #444;
+    opacity: 0.8;
     text-shadow: 4px 4px 4px #888;
+    transition: all 0.5s;
 }
 
+.header h1:hover {
+    opacity: 1;
+    text-shadow: 5px 5px 5px #444
+}
 
 /* 設定圖示 */
 #purgeFinished, #openOptions, #addTask {
