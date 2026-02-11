@@ -33,7 +33,7 @@ body {
 }
 
 .header-actions img:active {
-    transform: scale(1.2);
+    transform: scale(1.25);
 }
 
 /* 標題 */
@@ -44,7 +44,7 @@ body {
     color: #444;
     opacity: 0.8;
     text-shadow: 4px 4px 4px #888;
-    transition: all 0.5s;
+    transition: all 0.4s;
 }
 
 .header h1:hover {
@@ -58,11 +58,13 @@ body {
     height: 24px;
     cursor: pointer;
     opacity: 0.5;
-    transition: opacity 0.4s;
+    filter: drop-shadow(0.8px 0.8px 0.8px #888);
+    transition: all 0.4s;
 }
 
 #addTask:hover, #purgeFinished:hover, #openOptions:hover {
     opacity: 1;
+    filter: drop-shadow(1px 1px 1px #666);
 }
 
 /* Add Task 面板樣式 */
