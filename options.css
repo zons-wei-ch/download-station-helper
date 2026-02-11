@@ -1,12 +1,17 @@
 /* options.css */
 :root {
-    --primary-color: #44aaff;
-    --primary-hover: #1188dd;
+    --primary-color: #e7aa44;
+    --primary-hover: #df8800;
     --bg-color: #aaa;
     --card-bg: #444;
     --text-main: #bbb;
     --text-muted: #ddd;
     --border-color: #e0e0e0;
+}
+
+::selection {
+    background: #444;   /* 反白背景色 */
+    color: #eee;        /* 選取後的文字顏色 */
 }
 
 body {
@@ -19,19 +24,30 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    user-select: none;          /* 不可選取文字 */
 }
 
 .options-container {
     width: 450px;
     background-color: var(--card-bg);
-    padding: 30px;
+    padding: 24px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
+header {
+    display: flex;
+}
+
+header img {
+    width: 36px;
+    height: 36px;
+}
+
 header h2 {
     margin-top: 0;
-    margin-bottom: 15px;
+    margin-left: 16px;
+    margin-bottom: 16px;
     font-size: 24px;
     color: var(--primary-color);
     text-align: center;
@@ -70,7 +86,7 @@ select {
 input:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(38, 136, 255, 0.1);
+    box-shadow: 0 0 0 3px #888;
 }
 
 /* 密碼欄位特別處理 */
@@ -93,7 +109,7 @@ input:focus, select:focus {
 }
 
 .icon-button:hover { opacity: 1; }
-.icon-button img { width: 18px; height: 18px; }
+.icon-button img { width: 24px; height: 24px; }
 
 /* 按鈕樣式 */
 button {
