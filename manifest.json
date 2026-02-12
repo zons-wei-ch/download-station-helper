@@ -6,8 +6,7 @@
     "permissions": [
         "storage",
         "alarms",
-        "idle",
-        "tabs"
+        "idle"
     ],
     "host_permissions": [
         "http://*/webapi/*",
