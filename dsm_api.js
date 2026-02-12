@@ -3,7 +3,7 @@ let loginPromise = null; // 登入鎖
 // 基礎設定讀取
 export const getSettings = () => 
     new Promise(resolve => chrome.storage.sync.get({
-        host: "", account: "", password: "", refreshInterval: 3000
+        host: "", account: "", password: "", refreshInterval: 3000, enableNotifyForSeeding: false, enableNotifyForFinished: false
     }, resolve));
 
 // 內部通用請求封裝 (核心精簡點)

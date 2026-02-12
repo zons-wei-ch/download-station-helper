@@ -20,10 +20,43 @@ function updateBadge(count) {
     }
 }
 
+// 顯示通知
+function showCompletionNotification(taskTitle, state) {
+    chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/download_48.png', // 確保路徑正確
+        title: 'DSM Task',
+        message: `${state} : ${taskTitle}`,
+        priority: 2
+    });
+}
+
 // 刷新任務邏輯
 async function refreshTasks() {
     try {
         const tasks = await DSM_API.getTasks(state);
+        const settings = await DSM_API.getSettings();
+        console.log(settings);
+        // 檢查任務狀態是否有變化
+        if (settings.enableNotifyForSeeding) {
+            tasks.forEach(task => {
+                const preTask = state.latestTasks.find(t => t.id === task.id);
+                
+                if (task.status === 'seeding' && preTask && preTask.status !== 'seeding') {
+                    showCompletionNotification(task.title, "Seeding");
+                }
+            });
+        }
+        if (settings.enableNotifyForFinished) {
+            tasks.forEach(task => {
+                const preTask = state.latestTasks.find(t => t.id === task.id);
+                
+                if (task.status === 'finished' && preTask && preTask.status !== 'finished') {
+                    showCompletionNotification(task.title, "Finished");
+                }
+            });
+        }
+
         state.latestTasks = tasks;
         updateBadge(tasks.length);
 

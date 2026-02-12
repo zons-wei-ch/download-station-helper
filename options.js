@@ -12,6 +12,8 @@ const eyeIcon = document.getElementById("eyeIcon");
 const enableSortCheckbox = document.getElementById("enableSort");
 const sortFieldSelect = document.getElementById('sortField');
 const sortOrderSelect = document.getElementById('sortOrder');
+const enableNotifyForSeedingCheckbox = document.getElementById("enableNotifyForSeeding");
+const enableNotifyForFinishedCheckbox = document.getElementById("enableNotifyForFinished");
 
 // --- 密碼顯示/隱藏功能 ---
 togglePasswordBtn.onclick = (e) => {
@@ -75,6 +77,8 @@ saveBtn.onclick = () => {
     const enableSort = enableSortCheckbox.checked;
     const sortField = sortFieldSelect.value;
     const sortOrder = sortOrderSelect.value;
+    const enableNotifyForSeeding = enableNotifyForSeedingCheckbox.checked;
+    const enableNotifyForFinished = enableNotifyForFinishedCheckbox.checked;
 
     if (!host || !account) {
         UTIL.showNotify("ipput Host and Account !", "error", "top");
@@ -89,7 +93,9 @@ saveBtn.onclick = () => {
             refreshInterval,
             enableSort,
             sortField,
-            sortOrder
+            sortOrder,
+            enableNotifyForSeeding,
+            enableNotifyForFinished
         },
         () => {
             UTIL.showNotify("Settings Saved !", "success", "top");
@@ -106,7 +112,9 @@ chrome.storage.sync.get(
         refreshInterval: 3000, // 預設 3 秒
         enableSort: false,
         sortField: "time",
-        sortOrder: "desc"
+        sortOrder: "desc",
+        enableNotifyForSeeding: false,
+        enableNotifyForFinished: false
     },
     data => {
         hostInput.value = data.host;
@@ -123,6 +131,8 @@ chrome.storage.sync.get(
         enableSortCheckbox.checked = data.enableSort;
         sortFieldSelect.value = data.sortField;
         sortOrderSelect.value = data.sortOrder;
+        enableNotifyForSeedingCheckbox.checked = data.enableNotifyForSeeding;
+        enableNotifyForFinishedCheckbox.checked = data.enableNotifyForFinished;
         updateSortOptionsState();
     }
 );
