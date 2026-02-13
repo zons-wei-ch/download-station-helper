@@ -28,9 +28,9 @@ body {
 }
 
 .options-container {
-    width: 450px;
+    width: 460px;
     background-color: var(--card-bg);
-    padding: 24px;
+    padding: 16px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
@@ -53,14 +53,46 @@ header h2 {
     text-align: center;
 }
 
+.config-area {
+    margin-bottom: 8px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 12px;
+    padding-right: 12px;
+    border: 2px solid #888;
+    border-radius: 8px;
+}
+
+.config-area h3 {
+    color: #ddd;
+    margin: 0px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 section {
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
     border-bottom: 1px solid var(--border-color);
 }
 
+/* 排序區塊 */
+.checkbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.checkbox-header h3 { 
+    margin: 0;
+    font-size: 16px;
+}
+
 .field-group {
-    margin-bottom: 15px;
+    margin-bottom: 6px;
 }
 
 label {
@@ -88,7 +120,7 @@ select {
 input:focus, select:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px #888;
+    box-shadow: 0 0 0 3px #e7aa44;
 }
 
 /* 密碼欄位特別處理 */
@@ -146,16 +178,6 @@ button {
     background-color: #888;
     color: #ddd;
 }
-
-/* 排序區塊 */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.section-header h3 { margin: 0; font-size: 16px; }
 
 .large-checkbox {
     width: 24px;

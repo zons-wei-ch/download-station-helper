@@ -13,7 +13,8 @@
             <h2>DSM Setting</h2>
         </header>
 
-        <section class="config-section">
+        <div class="config-area">
+            <h3>Login Attributes</h3>
             <div class="field-group">
                 <label for="host">Host</label>
                 <input type="text" id="host" placeholder="[ip:5000] [quick:5001]">
@@ -34,30 +35,41 @@
                 </div>
             </div>
 
-            <div class="field-group">
-                <label for="refreshInterval">Refresh Interval</label>
-                <select id="refreshInterval">
-                    <option value="1000">1 s</option>
-                    <option value="2000">2 s</option>
-                    <option value="3000">3 s</option>
-                    <option value="4000">4 s</option>
-                    <option value="5000">5 s</option>
-                    <option value="6000">6 s</option>
-                    <option value="10000">10 s</option>
-                    <option value="15000">15 s</option>
-                    <option value="20000">20 s</option>
-                    <option value="30000">30 s</option>
-                    <option value="45000">45 s</option>
-                    <option value="60000">60 s</option>
-                </select>
-            </div>
-
             <button id="testConnection" class="secondary-button">Test Connection</button>
-        </section>
+        </div>
 
-        <section class="sort-section">
-            <div class="section-header">
-                <h3>Task Sorting</h3>
+        <div class="config-area">
+            <h3>Task Related</h3>
+
+            <section class="refreshInterval-section">
+                <div class="field-group">
+                    <label for="refreshInterval">Refresh Interval</label>
+                    <select id="refreshInterval">
+                        <option value="1000">1 s</option>
+                        <option value="2000">2 s</option>
+                        <option value="3000">3 s</option>
+                        <option value="4000">4 s</option>
+                        <option value="5000">5 s</option>
+                        <option value="6000">6 s</option>
+                        <option value="10000">10 s</option>
+                        <option value="15000">15 s</option>
+                        <option value="20000">20 s</option>
+                        <option value="30000">30 s</option>
+                        <option value="45000">45 s</option>
+                        <option value="60000">60 s</option>
+                    </select>
+                </div>
+            
+                <label>
+                    <input type="checkbox" id="enableNotifyForSeeding" class="large-checkbox">Notification for Seeding
+                </label>
+                <label>
+                    <input type="checkbox" id="enableNotifyForFinished" class="large-checkbox">Notification for Finished
+                </label>
+            </section>
+            
+            <div class="checkbox-header">
+                <h3>Sorting</h3>
                 <input type="checkbox" id="enableSort" class="large-checkbox">
             </div>
             
@@ -79,16 +91,7 @@
                     </select>
                 </div>
             </div>
-        </section>
-
-        <section class="notification-section">
-            <label>
-                <input type="checkbox" id="enableNotifyForSeeding" class="large-checkbox">Notification for Seeding Task
-            </label>
-            <label>
-                <input type="checkbox" id="enableNotifyForFinished" class="large-checkbox">Notification for Finished Task
-            </label>
-        </section>
+        </div>
 
         <footer>
             <button id="save" class="primary-button">Save Settings</button>
