@@ -66,8 +66,20 @@ header h2 {
 
 .config-area h3 {
     color: #ddd;
-    margin: 0px;
+    background-color: #333;
+    margin-top: 0px;
+    margin-bottom: 6px;
     padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.config-area h4 {
+    color: #ddd;
+    margin: 0px;
+    padding: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -76,7 +88,7 @@ header h2 {
 section {
     margin-bottom: 6px;
     padding-bottom: 6px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 2px solid var(--border-color);
 }
 
 /* 排序區塊 */
