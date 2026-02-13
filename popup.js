@@ -303,14 +303,14 @@ async function initPopupWithRetry(retries = 3) {
             renderTasks(res.tasks);
         } else {
             statusEl.textContent = "DSM Offline...";
-            stateEl.src = 'icons/alert.png';
+            stateEl.src = 'icons/disconnected.png';
         }
     } catch (e) {
         if (retries > 0) {
             setTimeout(() => initPopupWithRetry(retries - 1), 2000);
         } else {
             statusEl.textContent = "Background not responding";
-            stateEl.src = 'icons/alert.png';
+            stateEl.src = 'icons/disconnected.png';
         }
     }
 }
