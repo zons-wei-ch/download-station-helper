@@ -36,7 +36,6 @@ async function refreshTasks() {
     try {
         const tasks = await DSM_API.getTasks(state);
         const settings = await DSM_API.getSettings();
-        console.log(settings);
         // 檢查任務狀態是否有變化
         if (settings.enableNotifyForSeeding) {
             tasks.forEach(task => {
