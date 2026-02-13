@@ -36,13 +36,15 @@ body {
 .options-container {
     width: 480px;
     background-color: var(--card-bg);
-    padding: 16px 24px;
+    padding: 8px 24px;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 header {
     display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 header img {
@@ -51,9 +53,6 @@ header img {
 }
 
 header h2 {
-    margin-top: 0;
-    margin-left: 16px;
-    margin-bottom: 16px;
     font-size: 24px;
     color: var(--primary-color);
     text-align: center;
@@ -153,7 +152,7 @@ input:focus, select:focus {
 /* 按鈕樣式 */
 button {
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     border-radius: 6px;
     padding: 12px;
@@ -162,14 +161,15 @@ button {
 }
 
 .primary-button {
-    width: 100%;
-    background-color: var(--primary-color);
+    width: 160px;
+    margin-left: auto;
     color: var(--btn-text);
+    background-color: var(--primary-color);
 }
 
 .primary-button:hover {
-    background-color: var(--primary-hover);
     color: var(--btn-text-hover);
+    background-color: var(--primary-hover);
 }
 
 .secondary-button {
@@ -180,8 +180,8 @@ button {
 }
 
 .secondary-button:hover {
-    background-color: var(--btn-bg-hover);
     color: var(--btn-text-hover);
+    background-color: var(--btn-bg-hover);
 }
 
 .large-checkbox {
