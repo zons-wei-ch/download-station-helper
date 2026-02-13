@@ -1,13 +1,17 @@
 /* options.css */
 :root {
     --primary-color: #e7aa44;
-    --primary-hover: #df8800;
+    --primary-hover: #d28200;
     --bg-color: #aaa;
     --card-bg: #444;
-    --text-main: #bbb;
+    --text-main: #ccc;
     --text-muted: #ddd;
     --border-color: #aaa;
     --sub-h-bg-color: #393939;
+    --btn-bg: #aaa;
+    --btn-bg-hover: #888;
+    --btn-text: #444;
+    --btn-text-hover: #ddd;
 }
 
 ::selection {
@@ -173,24 +177,24 @@ button {
 .primary-button {
     width: 100%;
     background-color: var(--primary-color);
-    color: var(--card-bg);
+    color: var(--btn-text);
 }
 
 .primary-button:hover {
     background-color: var(--primary-hover);
-    color: var(--text-muted);
+    color: var(--btn-text-hover);
 }
 
 .secondary-button {
     width: 100%;
-    background-color: var(--text-main);
-    color: var(--card-bg);
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
     margin-top: 10px;
 }
 
 .secondary-button:hover {
-    background-color: #888;
-    color: #ddd;
+    background-color: var(--btn-bg-hover);
+    color: var(--btn-text-hover);
 }
 
 .large-checkbox {
