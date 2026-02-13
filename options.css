@@ -1,13 +1,13 @@
 /* options.css */
 :root {
     --primary-color: #e7aa44;
-    --primary-hover: #d28200;
+    --primary-hover: #d58800;
     --bg-color: #aaa;
     --card-bg: #444;
     --text-main: #ccc;
     --text-muted: #ddd;
     --border-color: #aaa;
-    --sub-h-bg-color: #393939;
+    --sub-h-bg-color: #333333cc;
     --btn-bg: #aaa;
     --btn-bg-hover: #888;
     --btn-text: #444;
@@ -78,7 +78,7 @@ header h2 {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .config-area h4 {
@@ -87,26 +87,13 @@ header h2 {
     padding: 0px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
 }
 
 section {
     margin-bottom: 6px;
     padding-bottom: 6px;
     border-bottom: 2px solid var(--border-color);
-}
-
-/* 排序區塊 */
-.checkbox-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-}
-
-.checkbox-header h3 { 
-    margin: 0;
-    font-size: 16px;
 }
 
 .field-group {
