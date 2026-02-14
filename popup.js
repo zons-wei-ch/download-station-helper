@@ -275,17 +275,19 @@ async function renderTasks(tasks) {
         taskListEl.appendChild(li);
 
         // 立即初始化進度條
-        updateProgressBar(progressContainer, task.status, progresRate);
+        // ProgressBar.js 的值範圍是 0.0 ~ 1.0
+        updateProgressBar(progressContainer, task.status, progresRate / 100);
         
     });
 }
 
 function updateProgressBar(progressContainer, status, rate) {
-    // ProgressBar.js 的值範圍是 0.0 ~ 1.0
+    if (rate > 1) rate = 1;
+
     if (progressBars[progressContainer.id]) {
         let bar = progressBars[progressContainer.id].bar;
         bar.color = getStatusColor(status);
-        bar.animate(rate / 100);
+        bar.animate(rate);
     }
     else {
         let bar = new ProgressBar.Line(`#${progressContainer.id}`, {
@@ -297,7 +299,7 @@ function updateProgressBar(progressContainer, status, rate) {
             trailWidth: 4,
             svgStyle: { width: '100%', height: '100%', borderRadius: '0px' }
         });
-        bar.set(rate / 100);
+        bar.set(rate);
         progressBars[progressContainer.id] = { container: progressContainer, bar: bar };
     }
 }
