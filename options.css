@@ -7,6 +7,7 @@
     --text-main: #ccc;
     --text-muted: #ddd;
     --border-color: #aaa;
+    --sub-h-color: #fecc77;
     --sub-h-bg-color: #333333cc;
     --btn-bg: #aaa;
     --btn-bg-hover: #888;
@@ -15,8 +16,8 @@
 }
 
 ::selection {
-    background: #444;   /* 反白背景色 */
-    color: #eee;        /* 選取後的文字顏色 */
+    background: var(--card-bg); /* 反白背景色 */
+    color: white;             /* 選取後的文字顏色 */
 }
 
 body {
@@ -69,7 +70,7 @@ header h2 {
 }
 
 .config-area h3 {
-    color: var(--text-main);
+    color: var(--sub-h-color);
     background-color: var(--sub-h-bg-color);
     margin-top: 0px;
     margin-bottom: 6px;
@@ -119,6 +120,11 @@ select {
     font-size: 14px;
     box-sizing: border-box;
     transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+select option:checked {
+    background-color: var(--card-bg) !important;
+    color: white;
 }
 
 input:focus, select:focus {

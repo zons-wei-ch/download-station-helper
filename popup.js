@@ -5,6 +5,7 @@ const stateEl = document.getElementById("state");
 const downloadEl = document.getElementById("download_speed");
 const uploadEl = document.getElementById("upload_speed");
 const taskListEl = document.getElementById("taskList");
+const progressBars = {};
 
 document.addEventListener("DOMContentLoaded", () => {
     // 開啟 options.html
@@ -94,7 +95,14 @@ document.addEventListener("DOMContentLoaded", () => {
 // ---------- 渲染任務 ----------
 async function renderTasks(tasks) {
     tasks = await UTIL.sortTasks(tasks);
-    //console.log(tasks);
+    
+    const currentIds = tasks.map(t => `bar-${t.id}`);
+    Object.keys(progressBars).forEach(id => {
+        if (!currentIds.includes(id)) {
+            delete progressBars[id];
+        }
+    });
+    
     taskListEl.innerHTML = "";
 
     tasks.forEach(task => {
@@ -133,14 +141,18 @@ async function renderTasks(tasks) {
         // ----
 
         // 進度條
-        const progress = document.createElement("progress");
-        const progresRate = UTIL.getProgress(task);
-        if (["seeding"].includes(task.status)) 
-            progress.value = ratio;
-        else
-            progress.value = progresRate;
-        progress.max = 100;
-        progress.className = "task-progress";
+        const progresRate = ["seeding"].includes(task.status) ? ratio : UTIL.getProgress(task);
+        let progressContainer = null;
+        let barid = `bar-${task.id}`;
+        
+        if (progressBars[barid])
+            progressContainer = progressBars[barid].container;
+        else {
+            // 必須給容器一個高度，否則 SVG 會無法顯示
+            progressContainer = document.createElement("div");
+            progressContainer.id = barid;
+            progressContainer.className = "task-progress";
+        }
         // ----
         
         // 容量 / icon / 完成度 / 速度
@@ -152,7 +164,7 @@ async function renderTasks(tasks) {
         metaProgressIcon.style.marginRight = "10px";
 
         const metaProgressValue = document.createElement("div");
-        metaProgressValue.textContent = `${progresRate}％`;
+        metaProgressValue.textContent = `${UTIL.getProgress(task)}％`;
         
         const metaSpeedIcon = document.createElement("img");
         metaSpeedIcon.src = "icons/speed.png";
@@ -195,8 +207,8 @@ async function renderTasks(tasks) {
             startBtn.onclick = e => {
                 e.stopPropagation();
                 chrome.runtime.sendMessage({
-                action: "startTask",
-                taskId: task.id
+                    action: "startTask",
+                    taskId: task.id
                 });
             };
 
@@ -216,8 +228,8 @@ async function renderTasks(tasks) {
             pauseBtn.onclick = e => {
                 e.stopPropagation();
                 chrome.runtime.sendMessage({
-                action: "pauseTask",
-                taskId: task.id
+                    action: "pauseTask",
+                    taskId: task.id
                 });
             };
 
@@ -256,12 +268,48 @@ async function renderTasks(tasks) {
         // 將元素加入 li
         li.appendChild(title);
         li.appendChild(metaTop);
-        li.appendChild(progress);
+        li.appendChild(progressContainer);
         li.appendChild(metaBottom);
         li.appendChild(actions);
 
         taskListEl.appendChild(li);
+
+        // 立即初始化進度條
+        updateProgressBar(progressContainer, task.status, progresRate);
+        
     });
+}
+
+function updateProgressBar(progressContainer, status, rate) {
+    // ProgressBar.js 的值範圍是 0.0 ~ 1.0
+    if (progressBars[progressContainer.id]) {
+        let bar = progressBars[progressContainer.id].bar;
+        bar.color = getStatusColor(status);
+        bar.animate(rate / 100);
+    }
+    else {
+        let bar = new ProgressBar.Line(`#${progressContainer.id}`, {
+            strokeWidth: 4,
+            easing: 'easeInOut',
+            duration: 800,
+            color: getStatusColor(status),
+            trailColor: '#eee',
+            trailWidth: 4,
+            svgStyle: { width: '100%', height: '100%', borderRadius: '0px' }
+        });
+        bar.set(rate / 100);
+        progressBars[progressContainer.id] = { container: progressContainer, bar: bar };
+    }
+}
+
+function getStatusColor(status) {
+    switch(status) {
+        case 'downloading': return '#1199dd';
+        case 'finished': return '#55aa66';
+        case 'seeding': return '#e7aa44';
+        case 'error': return '#cc3322';
+        default: return '#cccccc';
+    }
 }
 
 function updateStatus(tasks) {

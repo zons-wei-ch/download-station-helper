@@ -233,39 +233,10 @@ body {
 
 /* ===== 進度條 ===== */
 .task-progress {
-    width: 100%;
-    height: 8px;
-    margin: 4px 0;
-    appearance: none;
-    -webkit-appearance: none;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-/* 背景 */
-.task-progress::-webkit-progress-bar {
-    background-color: #e5e5e5;
-}
-
-/* downloading */
-.task[data-status="downloading"] .task-progress::-webkit-progress-value {
-    background-color: #1199dd;
-}
-/* finished */
-.task[data-status="finished"] .task-progress::-webkit-progress-value {
-    background-color: #55aa66;
-}
-/* seeding */
-.task[data-status="seeding"] .task-progress::-webkit-progress-value {
-    background-color: #e7aa44;
-}
-/* paused */
-.task[data-status="paused"] .task-progress::-webkit-progress-value {
-    background-color: #cccccc;
-}
-/* error */
-.task[data-status="error"] .task-progress::-webkit-progress-value {
-    background-color: #cc3322;
+    flex: 1;
+    margin: 0 0px;
+    height: 6px;        /* 必須設定高度 */
+    position: relative; /* 讓百分比文字定位 */
 }
 
 /* ===== 不同狀態顏色 ===== */
