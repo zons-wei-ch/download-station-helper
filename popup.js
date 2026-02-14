@@ -286,7 +286,7 @@ function updateProgressBar(progressContainer, status, rate) {
 
     if (progressBars[progressContainer.id]) {
         let bar = progressBars[progressContainer.id].bar;
-        bar.color = getStatusColor(status);
+        bar.path.setAttribute('stroke', getStatusColor(status));
         bar.animate(rate);
     }
     else {
@@ -309,8 +309,9 @@ function getStatusColor(status) {
         case 'downloading': return '#1199dd';
         case 'finished': return '#55aa66';
         case 'seeding': return '#e7aa44';
+        case 'paused': return '#999999';
         case 'error': return '#cc3322';
-        default: return '#cccccc';
+        default: return '#bbbbbb';
     }
 }
 

@@ -234,7 +234,7 @@ body {
 /* ===== 進度條 ===== */
 .task-progress {
     flex: 1;
-    margin: 0 0px;
+    margin: 4px 0px;
     height: 6px;        /* 必須設定高度 */
     position: relative; /* 讓百分比文字定位 */
 }
@@ -250,7 +250,7 @@ body {
     color: #e7aa44;
 }
 .task[data-status="paused"] .task-title {
-    color: #cccccc;
+    color: #999999;
 }
 .task[data-status="error"] .task-title {
     color: #cc3322;
