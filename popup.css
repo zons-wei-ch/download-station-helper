@@ -240,8 +240,14 @@ body {
 }
 
 /* ===== 不同狀態顏色 ===== */
+.task[data-status="waiting"] .task-title {
+    color: #aaaaaa;
+}
 .task[data-status="downloading"] .task-title {
     color: #1199dd;
+}
+.task[data-status="finishing"] .task-title {
+    color: #55ccff;
 }
 .task[data-status="finished"] .task-title {
     color: #55aa66;
@@ -250,7 +256,7 @@ body {
     color: #e7aa44;
 }
 .task[data-status="paused"] .task-title {
-    color: #999999;
+    color: #888888;
 }
 .task[data-status="error"] .task-title {
     color: #cc3322;

@@ -125,6 +125,14 @@ export function formatSize(bytes) {
         : `${size.toFixed(2)} ${units[unitIndex]}`;
 }
 
+// 計算上下傳比例
+export function getRatio(task) {
+    let downloaded = task.additional?.transfer?.size_downloaded ?? 0;
+    let uploaded = task.additional?.transfer?.size_uploaded ?? 0;
+    let ratio = downloaded > 0 ? roundTo((uploaded / downloaded) * 100, 1): 0;
+    return ratio;
+}
+
 // 計算進度
 export function getProgress(task) {
     if (task.status === "finished" || task.status === "seeding") return 100;

@@ -5,6 +5,7 @@ const stateEl = document.getElementById("state");
 const downloadEl = document.getElementById("download_speed");
 const uploadEl = document.getElementById("upload_speed");
 const taskListEl = document.getElementById("taskList");
+const containerCache = {};
 const progressBars = {};
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -96,222 +97,285 @@ document.addEventListener("DOMContentLoaded", () => {
 async function renderTasks(tasks) {
     tasks = await UTIL.sortTasks(tasks);
     
-    const currentIds = tasks.map(t => `bar-${t.id}`);
-    Object.keys(progressBars).forEach(id => {
-        if (!currentIds.includes(id)) {
-            delete progressBars[id];
+    const taskIds = tasks.map(t => t.id);
+    Object.keys(containerCache).forEach(id => {
+        if (!taskIds.includes(id)) {
+            delete containerCache[id];
         }
     });
     
     taskListEl.innerHTML = "";
 
     tasks.forEach(task => {
-        const li = document.createElement("li");
-        li.className = "task";
-        li.setAttribute("data-status", task.status);
-
-        // 標題
-        const title = document.createElement("div");
-        title.className = "task-title";
-        title.textContent = task.title || task.name || "No Title";
-        // ----
-        
-        // 狀態 + icon + Ratio
-        const metaRatioIcon = document.createElement("img");
-        metaRatioIcon.src = "icons/ratio.png";
-        metaRatioIcon.style.width = '16px';
-        metaRatioIcon.style.height = 'auto';
-        metaRatioIcon.style.marginLeft = "10px";
-        metaRatioIcon.style.marginRight = "10px";
-
-        const metaRatioValue = document.createElement("div");
-        const downloaded = task.additional?.transfer?.size_downloaded ?? 0;
-        const uploaded = task.additional?.transfer?.size_uploaded ?? 0;
-        const ratio = downloaded > 0 ? UTIL.roundTo((uploaded / downloaded) * 100, 1): "-";
-        metaRatioValue.textContent = `${ratio}％`;
-
-        const metaTop = document.createElement("div");
-        metaTop.className = "task-meta";
-        let statusText = task.status;
-        if (task.status === "error") statusText += ` ／ ${task.status_extra?.error_detail}`;
-        metaTop.textContent = `${statusText}`;
-
-        metaTop.appendChild(metaRatioIcon);
-        metaTop.appendChild(metaRatioValue);
-        // ----
-
-        // 進度條
-        const progresRate = ["seeding"].includes(task.status) ? ratio : UTIL.getProgress(task);
-        let progressContainer = null;
-        let barid = `bar-${task.id}`;
-        
-        if (progressBars[barid])
-            progressContainer = progressBars[barid].container;
+        if (!containerCache[task.id]) {
+            let taskEl = createTaskEl(task);
+            taskListEl.appendChild(taskEl);
+            let bar = createBar(task);
+            containerCache[task.id] = { container: taskEl, bar: bar };
+        }
         else {
-            // 必須給容器一個高度，否則 SVG 會無法顯示
-            progressContainer = document.createElement("div");
-            progressContainer.id = barid;
-            progressContainer.className = "task-progress";
-        }
-        // ----
-        
-        // 容量 / icon / 完成度 / 速度
-        const metaProgressIcon = document.createElement("img");
-        metaProgressIcon.src = "icons/progress.png";
-        metaProgressIcon.style.width = '16px';
-        metaProgressIcon.style.height = 'auto';
-        metaProgressIcon.style.marginLeft = "10px";
-        metaProgressIcon.style.marginRight = "10px";
-
-        const metaProgressValue = document.createElement("div");
-        metaProgressValue.textContent = `${UTIL.getProgress(task)}％`;
-        
-        const metaSpeedIcon = document.createElement("img");
-        metaSpeedIcon.src = "icons/speed.png";
-        metaSpeedIcon.style.width = '16px';
-        metaSpeedIcon.style.height = 'auto';
-        metaSpeedIcon.style.marginLeft = "10px";
-        metaSpeedIcon.style.marginRight = "10px";
-
-        const metaSpeedValue = document.createElement("div");
-        const speedDown = task.additional?.transfer?.speed_download ?? 0;
-        const speedUp = task.additional?.transfer?.speed_upload ?? 0;
-        metaSpeedValue.textContent = `D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
-
-        const metaBottom = document.createElement("div");
-        metaBottom.className = "task-meta";
-        const size = task.size ?? 0;
-        metaBottom.textContent = `${UTIL.formatSize(size)}`;
-        
-        metaBottom.appendChild(metaProgressIcon);
-        metaBottom.appendChild(metaProgressValue);
-        metaBottom.appendChild(metaSpeedIcon);
-        metaBottom.appendChild(metaSpeedValue);
-        // ----
-
-        // 動作按鈕容器
-        const actions = document.createElement("div");
-        actions.className = "task-actions";
-
-        // 開始任務按鈕
-        if (["paused", "waiting", "error", "finished"].includes(task.status)) {
-            const startBtn = document.createElement("img");
-            startBtn.src = "icons/start.png";
-            startBtn.alt = "Resume Task";
-            startBtn.title = "Resume Task";
-            startBtn.className = "task-action-btn";
-            startBtn.style.cursor = "pointer";
-            startBtn.style.width = "24px";
-            startBtn.style.height = "24px";
-            startBtn.style.marginLeft = "10px";
-            startBtn.onclick = e => {
-                e.stopPropagation();
-                chrome.runtime.sendMessage({
-                    action: "startTask",
-                    taskId: task.id
-                });
-            };
-
-            actions.appendChild(startBtn);
-        }
-        // 暫停任務按鈕
-        if (["downloading", "seeding"].includes(task.status)) {
-            const pauseBtn = document.createElement("img");
-            pauseBtn.src = "icons/pause.png";
-            pauseBtn.alt = "Pause Task";
-            pauseBtn.title = "Pause Task";
-            pauseBtn.className = "task-action-btn";
-            pauseBtn.style.cursor = "pointer";
-            pauseBtn.style.width = "24px";
-            pauseBtn.style.height = "24px";
-            pauseBtn.style.marginLeft = "10px";
-            pauseBtn.onclick = e => {
-                e.stopPropagation();
-                chrome.runtime.sendMessage({
-                    action: "pauseTask",
-                    taskId: task.id
-                });
-            };
-
-            actions.appendChild(pauseBtn);
-        }
-        // 刪除任務按鈕
-        const delBtn = document.createElement("img");
-        delBtn.src = "icons/delete.png";
-        delBtn.alt = "Delete Task";
-        delBtn.title = "Delete Task";
-        delBtn.className = "task-delete-btn";
-        delBtn.style.cursor = "pointer";
-        delBtn.style.width = "24px";
-        delBtn.style.height = "24px";
-        delBtn.style.marginLeft = "10px";
-
-        delBtn.onclick = async(e) => {
-            const confirmed = await UTIL.showConfirm(
-                "Delete Task?",
-                `Are you sure to delete: "${task.title}"?`
-            );
-
-            if (confirmed) {
-                chrome.runtime.sendMessage({ action: "deleteTask", taskId: task.id }, (res) => {
-                    if (res?.success) {
-                        UTIL.showNotify("Deleted");
-                        li.remove();
-                    } else {
-                        UTIL.showError("Delete Failed", res?.error);
-                    }
-                });
+            let taskEl = containerCache[task.id].container;
+            let statusAttr = taskEl.getAttribute("data-status");
+            if (statusAttr != task.status) {
+                delete containerCache[task.id];
+                taskEl = createTaskEl(task);
+                taskListEl.appendChild(taskEl);
+                let bar = createBar(task);
+                containerCache[task.id] = { container: taskEl, bar: bar };
             }
-        };
-        actions.appendChild(delBtn);
-
-        // 將元素加入 li
-        li.appendChild(title);
-        li.appendChild(metaTop);
-        li.appendChild(progressContainer);
-        li.appendChild(metaBottom);
-        li.appendChild(actions);
-
-        taskListEl.appendChild(li);
-
-        // 立即初始化進度條
-        // ProgressBar.js 的值範圍是 0.0 ~ 1.0
-        updateProgressBar(progressContainer, task.status, progresRate / 100);
-        
+            else {
+                updateTaskEl(task, taskEl);
+                taskListEl.appendChild(taskEl);
+                let bar = containerCache[task.id].bar;
+                updateBar(task, bar);
+            }
+        }
     });
 }
 
-function updateProgressBar(progressContainer, status, rate) {
-    if (rate > 1) rate = 1;
+function createTaskEl(task) {
+    let li = document.createElement("li");
+    li.id = task.id;
+    li.className = "task";
+    li.setAttribute("data-status", task.status);
 
-    if (progressBars[progressContainer.id]) {
-        let bar = progressBars[progressContainer.id].bar;
-        bar.path.setAttribute('stroke', getStatusColor(status));
-        bar.animate(rate);
+    // 標題
+    let title = document.createElement("div");
+    title.id =  `${task.id}-title`;
+    title.className = "task-title";
+    title.textContent = task.title || task.name || "No Title";
+    // ----
+    
+    // 狀態 + icon + Ratio
+    let metaStatus = document.createElement("div");
+    metaStatus.id = `${task.id}-status`;
+    let statusText = task.status;
+    if (task.status === "error") statusText += ` ／ ${task.status_extra?.error_detail}`;
+    metaStatus.textContent = `${statusText}`;
+
+    let metaRatioIcon = document.createElement("img");
+    metaRatioIcon.src = "icons/ratio.png";
+    metaRatioIcon.style.width = '16px';
+    metaRatioIcon.style.height = 'auto';
+    metaRatioIcon.style.marginLeft = "10px";
+    metaRatioIcon.style.marginRight = "10px";
+
+    let metaRatioValue = document.createElement("div");
+    metaRatioValue.id =  `${task.id}-ratio`;
+    metaRatioValue.className = "task-ratio";
+    let ratio = UTIL.getRatio(task);
+    metaRatioValue.textContent = ratio > 0 ? `${ratio}％` : "- ％";
+
+    let metaTop = document.createElement("div");
+    metaTop.id =  `${task.id}-meta-top`;
+    metaTop.className = "task-meta";
+    
+    metaTop.appendChild(metaStatus);
+    metaTop.appendChild(metaRatioIcon);
+    metaTop.appendChild(metaRatioValue);
+    // ----
+
+    // 進度條
+    // 必須給容器一個高度，否則 SVG 會無法顯示
+    let progressContainer = document.createElement("div");
+    progressContainer.id = `${task.id}-bar`;
+    progressContainer.className = "task-progress";
+    // ----
+    
+    // 容量 / icon / 完成度 / 速度
+    let metaSize = document.createElement("div");
+    metaSize.id = `${task.id}-size`;
+    let size = task.size ?? 0;
+    metaSize.textContent = `${UTIL.formatSize(size)}`;
+
+    let metaProgressIcon = document.createElement("img");
+    metaProgressIcon.src = "icons/progress.png";
+    metaProgressIcon.style.width = '16px';
+    metaProgressIcon.style.height = 'auto';
+    metaProgressIcon.style.marginLeft = "10px";
+    metaProgressIcon.style.marginRight = "10px";
+
+    let metaProgressValue = document.createElement("div");
+    metaProgressValue.id = `${task.id}-progress-value`;
+    metaProgressValue.textContent = `${UTIL.getProgress(task)}％`;
+    
+    let metaSpeedIcon = document.createElement("img");
+    metaSpeedIcon.src = "icons/speed.png";
+    metaSpeedIcon.style.width = '16px';
+    metaSpeedIcon.style.height = 'auto';
+    metaSpeedIcon.style.marginLeft = "10px";
+    metaSpeedIcon.style.marginRight = "10px";
+
+    let metaSpeedValue = document.createElement("div");
+    metaSpeedValue.id = `${task.id}-speed-value`;
+    let speedDown = task.additional?.transfer?.speed_download ?? 0;
+    let speedUp = task.additional?.transfer?.speed_upload ?? 0;
+    metaSpeedValue.textContent = `D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
+
+    let metaBottom = document.createElement("div");
+    metaBottom.id = `${task.id}-meta-bottom`;
+    metaBottom.className = "task-meta";
+    
+    metaBottom.appendChild(metaSize);
+    metaBottom.appendChild(metaProgressIcon);
+    metaBottom.appendChild(metaProgressValue);
+    metaBottom.appendChild(metaSpeedIcon);
+    metaBottom.appendChild(metaSpeedValue);
+    // ----
+
+    // 動作按鈕容器
+    let actions = document.createElement("div");
+    actions.className = "task-actions";
+
+    // 開始任務按鈕
+    if (["paused", "waiting", "error", "finished"].includes(task.status)) {
+        let startBtn = document.createElement("img");
+        startBtn.src = "icons/start.png";
+        startBtn.alt = "Resume Task";
+        startBtn.title = "Resume Task";
+        startBtn.className = "task-action-btn";
+        startBtn.style.cursor = "pointer";
+        startBtn.style.width = "24px";
+        startBtn.style.height = "24px";
+        startBtn.style.marginLeft = "10px";
+        startBtn.onclick = e => {
+            e.stopPropagation();
+            chrome.runtime.sendMessage({
+                action: "startTask",
+                taskId: task.id
+            });
+        };
+
+        actions.appendChild(startBtn);
     }
-    else {
-        let bar = new ProgressBar.Line(`#${progressContainer.id}`, {
-            strokeWidth: 4,
-            easing: 'easeInOut',
-            duration: 800,
-            color: getStatusColor(status),
-            trailColor: '#eee',
-            trailWidth: 4,
-            svgStyle: { width: '100%', height: '100%', borderRadius: '0px' }
-        });
-        bar.set(rate);
-        progressBars[progressContainer.id] = { container: progressContainer, bar: bar };
+    // 暫停任務按鈕
+    if (["downloading", "seeding"].includes(task.status)) {
+        let pauseBtn = document.createElement("img");
+        pauseBtn.src = "icons/pause.png";
+        pauseBtn.alt = "Pause Task";
+        pauseBtn.title = "Pause Task";
+        pauseBtn.className = "task-action-btn";
+        pauseBtn.style.cursor = "pointer";
+        pauseBtn.style.width = "24px";
+        pauseBtn.style.height = "24px";
+        pauseBtn.style.marginLeft = "10px";
+        pauseBtn.onclick = e => {
+            e.stopPropagation();
+            chrome.runtime.sendMessage({
+                action: "pauseTask",
+                taskId: task.id
+            });
+        };
+
+        actions.appendChild(pauseBtn);
     }
+    // 刪除任務按鈕
+    let delBtn = document.createElement("img");
+    delBtn.src = "icons/delete.png";
+    delBtn.alt = "Delete Task";
+    delBtn.title = "Delete Task";
+    delBtn.className = "task-delete-btn";
+    delBtn.style.cursor = "pointer";
+    delBtn.style.width = "24px";
+    delBtn.style.height = "24px";
+    delBtn.style.marginLeft = "10px";
+
+    delBtn.onclick = async(e) => {
+        let confirmed = await UTIL.showConfirm(
+            "Delete Task?",
+            `Are you sure to delete: "${task.title}"?`
+        );
+
+        if (confirmed) {
+            chrome.runtime.sendMessage({ action: "deleteTask", taskId: task.id }, (res) => {
+                if (res?.success) {
+                    UTIL.showNotify("Deleted");
+                    li.remove();
+                } else {
+                    UTIL.showError("Delete Failed", res?.error);
+                }
+            });
+        }
+    };
+    actions.appendChild(delBtn);
+
+    // 將元素加入 li
+    li.appendChild(title);
+    li.appendChild(metaTop);
+    li.appendChild(progressContainer);
+    li.appendChild(metaBottom);
+    li.appendChild(actions);
+
+    return li;
+}
+
+function updateTaskEl(task, li) {
+    li.setAttribute("data-status", task.status);
+    // console.log(metaRatioValue);
+    // 標題
+    let title = li.querySelector(`#${task.id}-title`);
+    title.textContent = task.title || task.name || "No Title";
+    // ----
+    
+    // 狀態 + Ratio
+    let metaRatioValue = li.querySelector(`#${task.id}-ratio`);
+    let ratio = UTIL.getRatio(task);
+    metaRatioValue.textContent = ratio > 0 ? `${ratio}％` : "- ％";
+
+    let metaStatus = li.querySelector(`#${task.id}-status`);
+    let statusText = task.status;
+    if (task.status === "error") statusText += ` ／ ${task.status_extra?.error_detail}`;
+    metaStatus.textContent = statusText;
+    // ----
+
+    // 容量 / 完成度 / 速度
+    let metaSize = li.querySelector(`#${task.id}-size`);
+    let size = task.size ?? 0;
+    metaSize.textContent = `${UTIL.formatSize(size)}`;
+
+    let metaProgressValue = li.querySelector(`#${task.id}-progress-value`);
+    metaProgressValue.textContent = `${UTIL.getProgress(task)}％`;
+
+    let metaSpeedValue = li.querySelector(`#${task.id}-speed-value`);
+    let speedDown = task.additional?.transfer?.speed_download ?? 0;
+    let speedUp = task.additional?.transfer?.speed_upload ?? 0;
+    metaSpeedValue.textContent = `D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
+    // ----
+}
+
+function createBar(task) {
+    let bar = new ProgressBar.Line(`#${task.id}-bar`, {
+        strokeWidth: 4,
+        easing: 'easeInOut',
+        duration: 800,
+        color: getStatusColor(task.status),
+        trailColor: '#eee',
+        trailWidth: 4,
+        svgStyle: { width: '100%', height: '100%', borderRadius: '0px' }
+    });
+
+    let rate = ["seeding"].includes(task.status) ? UTIL.getRatio(task) : UTIL.getProgress(task);
+    bar.set(rate / 100 > 1 ? 1 : rate / 100);
+
+    return bar;
+}
+
+function updateBar(task, bar) {
+    let rate = ["seeding"].includes(task.status) ? UTIL.getRatio(task) : UTIL.getProgress(task);
+    bar.path.setAttribute('stroke', getStatusColor(task.status));
+    bar.animate(rate / 100 > 1 ? 1 : rate / 100);
 }
 
 function getStatusColor(status) {
     switch(status) {
+        case 'waiting': return '#aaaaaa';
         case 'downloading': return '#1199dd';
+        case 'finishing': return '#55ccff';
         case 'finished': return '#55aa66';
         case 'seeding': return '#e7aa44';
-        case 'paused': return '#999999';
+        case 'paused': return '#888888';
         case 'error': return '#cc3322';
-        default: return '#bbbbbb';
+        default: return '#dddddd';
     }
 }
 
