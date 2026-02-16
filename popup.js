@@ -357,8 +357,11 @@ function toggleButtons(status, startBtn, pauseBtn) {
     if (["downloading", "seeding"].includes(status)) {
         startBtn.classList.add("hidden");    // 隱藏開始
         pauseBtn.classList.remove("hidden"); // 顯示暫停
-    } else if (["paused", "waiting", "error", "finished"].includes(status)) {
+    } else if (["paused", "waiting", "error"].includes(status)) {
         startBtn.classList.remove("hidden"); // 顯示開始
+        pauseBtn.classList.add("hidden");    // 隱藏暫停
+    } else if (["finished"].includes(status)) {
+        startBtn.classList.add("hidden");    // 隱藏開始
         pauseBtn.classList.add("hidden");    // 隱藏暫停
     }
 }
