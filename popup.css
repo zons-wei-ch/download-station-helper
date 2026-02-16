@@ -212,6 +212,10 @@ body {
     background-color: #1d1d1d;
 }
 
+.no-hover .task {
+    transition: none !important;
+}
+
 /* ===== 任務標題 ===== */
 .task-title {
     font-weight: 600;
@@ -287,6 +291,10 @@ body {
 
 .task-delete-btn:hover, .task-action-btn:hover {
     opacity: 1;
+}
+
+.no-hover .task-delete-btn, .task-action-btn:hover {
+    transition: none !important;
 }
 
 .hidden {

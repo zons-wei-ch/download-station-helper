@@ -111,8 +111,15 @@ async function renderTasks(tasks) {
         }
         fragment.appendChild(taskEl);
     });
+    // 先暫停 hover transition
+    taskListEl.classList.add("no-hover");
     // 取代 task list
     taskListEl.replaceChildren(fragment);
+    // 下一個 frame 再恢復
+    requestAnimationFrame(() => {
+        taskListEl.classList.remove("no-hover");
+    });
+
     // 刪除沒用到的暫存
     const taskIds = tasks.map(t => t.id);
     Object.keys(containerCache).forEach(id => {
