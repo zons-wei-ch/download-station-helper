@@ -6,7 +6,6 @@ const downloadEl = document.getElementById("download_speed");
 const uploadEl = document.getElementById("upload_speed");
 const taskListEl = document.getElementById("taskList");
 const containerCache = {};
-const progressBars = {};
 
 document.addEventListener("DOMContentLoaded", () => {
     // 開啟 options.html
@@ -97,45 +96,48 @@ document.addEventListener("DOMContentLoaded", () => {
 async function renderTasks(tasks) {
     tasks = await UTIL.sortTasks(tasks);
     
+    const fragment = document.createDocumentFragment();
+    // 建立更新 task element
+    tasks.forEach(task => {
+        let cache = containerCache[task.id];
+        let taskEl;
+        if (!cache) {
+            taskEl = createTaskEl(task);
+            containerCache[task.id] = { container: taskEl, bar: null };
+        }
+        else {
+            taskEl = cache.container;
+            updateTaskEl(task, taskEl);
+        }
+        fragment.appendChild(taskEl);
+    });
+    // 取代 task list
+    taskListEl.replaceChildren(fragment);
+    // 刪除沒用到的暫存
     const taskIds = tasks.map(t => t.id);
     Object.keys(containerCache).forEach(id => {
         if (!taskIds.includes(id)) {
             delete containerCache[id];
         }
     });
-    
-    taskListEl.innerHTML = "";
-
-    tasks.forEach(task => {
-        if (!containerCache[task.id]) {
-            let taskEl = createTaskEl(task);
-            taskListEl.appendChild(taskEl);
-            let bar = createBar(task);
-            containerCache[task.id] = { container: taskEl, bar: bar };
+    // 建立更新 progerss bar
+    Object.entries(containerCache).forEach(([taskId, cache]) => {
+        let task = tasks.find(t => t.id === taskId);
+        let container = cache.container;
+        let bar = cache.bar;
+        
+        if (!bar) {
+            bar = createBar(task);
+            containerCache[task.id] = { container: container, bar: bar };
         }
-        else {
-            let taskEl = containerCache[task.id].container;
-            let statusAttr = taskEl.getAttribute("data-status");
-            if (statusAttr != task.status) {
-                delete containerCache[task.id];
-                taskEl = createTaskEl(task);
-                taskListEl.appendChild(taskEl);
-                let bar = createBar(task);
-                containerCache[task.id] = { container: taskEl, bar: bar };
-            }
-            else {
-                updateTaskEl(task, taskEl);
-                taskListEl.appendChild(taskEl);
-                let bar = containerCache[task.id].bar;
-                updateBar(task, bar);
-            }
-        }
+        else
+            updateBar(task, bar);
     });
 }
 
 function createTaskEl(task) {
     let li = document.createElement("li");
-    li.id = task.id;
+    li.id = `${task.id}-task`;
     li.className = "task";
     li.setAttribute("data-status", task.status);
 
@@ -228,47 +230,41 @@ function createTaskEl(task) {
     actions.className = "task-actions";
 
     // 開始任務按鈕
-    if (["paused", "waiting", "error", "finished"].includes(task.status)) {
-        let startBtn = document.createElement("img");
-        startBtn.src = "icons/start.png";
-        startBtn.alt = "Resume Task";
-        startBtn.title = "Resume Task";
-        startBtn.className = "task-action-btn";
-        startBtn.style.cursor = "pointer";
-        startBtn.style.width = "24px";
-        startBtn.style.height = "24px";
-        startBtn.style.marginLeft = "10px";
-        startBtn.onclick = e => {
-            e.stopPropagation();
-            chrome.runtime.sendMessage({
-                action: "startTask",
-                taskId: task.id
-            });
-        };
-
-        actions.appendChild(startBtn);
-    }
+    let startBtn = document.createElement("img");
+    startBtn.src = "icons/start.png";
+    startBtn.alt = "Resume Task";
+    startBtn.title = "Resume Task";
+    startBtn.className = "task-action-btn btn-start";
+    startBtn.style.cursor = "pointer";
+    startBtn.style.width = "24px";
+    startBtn.style.height = "24px";
+    startBtn.style.marginLeft = "10px";
+    startBtn.onclick = e => {
+        e.stopPropagation();
+        chrome.runtime.sendMessage({
+            action: "startTask",
+            taskId: task.id
+        });
+    };
+    actions.appendChild(startBtn);
     // 暫停任務按鈕
-    if (["downloading", "seeding"].includes(task.status)) {
-        let pauseBtn = document.createElement("img");
-        pauseBtn.src = "icons/pause.png";
-        pauseBtn.alt = "Pause Task";
-        pauseBtn.title = "Pause Task";
-        pauseBtn.className = "task-action-btn";
-        pauseBtn.style.cursor = "pointer";
-        pauseBtn.style.width = "24px";
-        pauseBtn.style.height = "24px";
-        pauseBtn.style.marginLeft = "10px";
-        pauseBtn.onclick = e => {
-            e.stopPropagation();
-            chrome.runtime.sendMessage({
-                action: "pauseTask",
-                taskId: task.id
-            });
-        };
-
-        actions.appendChild(pauseBtn);
-    }
+    let pauseBtn = document.createElement("img");
+    pauseBtn.src = "icons/pause.png";
+    pauseBtn.alt = "Pause Task";
+    pauseBtn.title = "Pause Task";
+    pauseBtn.className = "task-action-btn btn-pause";
+    pauseBtn.style.cursor = "pointer";
+    pauseBtn.style.width = "24px";
+    pauseBtn.style.height = "24px";
+    pauseBtn.style.marginLeft = "10px";
+    pauseBtn.onclick = e => {
+        e.stopPropagation();
+        chrome.runtime.sendMessage({
+            action: "pauseTask",
+            taskId: task.id
+        });
+    };
+    actions.appendChild(pauseBtn);
     // 刪除任務按鈕
     let delBtn = document.createElement("img");
     delBtn.src = "icons/delete.png";
@@ -279,7 +275,6 @@ function createTaskEl(task) {
     delBtn.style.width = "24px";
     delBtn.style.height = "24px";
     delBtn.style.marginLeft = "10px";
-
     delBtn.onclick = async(e) => {
         let confirmed = await UTIL.showConfirm(
             "Delete Task?",
@@ -298,6 +293,8 @@ function createTaskEl(task) {
         }
     };
     actions.appendChild(delBtn);
+    // 切換隱藏 / 顯示
+    toggleButtons(task.status, startBtn, pauseBtn);
 
     // 將元素加入 li
     li.appendChild(title);
@@ -341,6 +338,22 @@ function updateTaskEl(task, li) {
     let speedUp = task.additional?.transfer?.speed_upload ?? 0;
     metaSpeedValue.textContent = `D: ${UTIL.formatSpeed(speedDown)} ／ U: ${UTIL.formatSpeed(speedUp)}`;
     // ----
+    // 開始任務按鈕 暫停任務按鈕
+    const startBtn = li.querySelector(".btn-start");
+    const pauseBtn = li.querySelector(".btn-pause");
+    // 切換隱藏 / 顯示
+    toggleButtons(task.status, startBtn, pauseBtn);
+}
+
+// 專門切換顯示狀態的輔助函式
+function toggleButtons(status, startBtn, pauseBtn) {
+    if (["downloading", "seeding"].includes(status)) {
+        startBtn.classList.add("hidden");    // 隱藏開始
+        pauseBtn.classList.remove("hidden"); // 顯示暫停
+    } else if (["paused", "waiting", "error", "finished"].includes(status)) {
+        startBtn.classList.remove("hidden"); // 顯示開始
+        pauseBtn.classList.add("hidden");    // 隱藏暫停
+    }
 }
 
 function createBar(task) {

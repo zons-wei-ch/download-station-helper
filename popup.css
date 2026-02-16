@@ -288,3 +288,7 @@ body {
 .task-delete-btn:hover, .task-action-btn:hover {
     opacity: 1;
 }
+
+.hidden {
+    display: none !important;
+}
