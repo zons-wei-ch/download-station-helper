@@ -197,8 +197,8 @@ body {
 .task {
     position: relative;
     background-color: #2d2d2d;
-    border-radius: 6px;
-    padding: 5px 0px;
+    border-radius: 4px;
+    padding: 4px 0px;
     margin-top: 2px;
     margin-bottom: 0px;
     color: #dddddd;
