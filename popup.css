@@ -198,7 +198,7 @@ body {
     position: relative;
     background-color: #2d2d2d;
     border-radius: 4px;
-    padding: 4px 0px;
+    padding: 2px 0px;
     margin-top: 2px;
     margin-bottom: 0px;
     color: #dddddd;
@@ -219,7 +219,7 @@ body {
 /* ===== 任務標題 ===== */
 .task-title {
     font-weight: 600;
-    margin-bottom: 4px;
+    margin: 2px 0px;
     padding-right: 60px; /* 預留刪除按鈕空間 */
     text-overflow: ellipsis;    /* 如果文字太長顯示省略號 */
     word-break: break-word;
@@ -231,7 +231,7 @@ body {
     display: flex;
     font-size: 12px;
     color: #dddddd;
-    margin: 1px 0;
+    margin: 2px 0px;
     /* -webkit-text-stroke: 0.1px black; */
 }
 
