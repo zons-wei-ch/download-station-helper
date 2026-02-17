@@ -171,7 +171,7 @@ export function getTaskStatusText(task) {
 export function getTaskSpeedText(task) {
     const speedDown = task.additional?.transfer?.speed_download ?? 0;
     const speedUp = task.additional?.transfer?.speed_upload ?? 0;
-    return `D: ${formatSpeed(speedDown)} | U: ${formatSpeed(speedUp)}`;
+    return `D: ${formatSpeed(speedDown)} ／ U: ${formatSpeed(speedUp)}`;
 }
 
 export function getTaskDisplayRate(task) {
