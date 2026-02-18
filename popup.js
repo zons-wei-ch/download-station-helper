@@ -15,13 +15,6 @@ const ICON_18_STYLE = {
     marginRight: '6px'
 };
 
-const ICON_20_STYLE = {
-    width: '20px',
-    height: '20px',
-    marginLeft: '6px',
-    marginRight: '6px'
-};
-
 const ICON_24_STYLE = {
     width: '24px',
     height: '24px',
@@ -165,13 +158,13 @@ function createTaskEl(task) {
 
     const metaStatusIcon = createIcon('icons/status.png', ICON_18_STYLE);
     const metaStatus = createDiv(`${taskId}-status`, 'task-meta-text', UTIL.getTaskStatusText(task));
-    const metaProgressIcon = createIcon('icons/progress.png', ICON_20_STYLE);
+    const metaProgressIcon = createIcon('icons/progress.png', ICON_18_STYLE);
     const metaProgressValue = createDiv(
         `${taskId}-progress-value`,
         'task-meta-text',
         UTIL.getTaskProgressText(task)
     );
-    const metaRatioIcon = createIcon('icons/ratio.png', ICON_20_STYLE);
+    const metaRatioIcon = createIcon('icons/ratio.png', ICON_18_STYLE);
     const metaRatioValue = createDiv(`${taskId}-ratio`, 'task-meta-text', UTIL.getTaskRatioText(task));
 
     const metaTop = createDiv(`${taskId}-meta-top`, 'task-meta');
