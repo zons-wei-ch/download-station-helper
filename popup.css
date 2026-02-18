@@ -195,21 +195,23 @@ body {
 
 /* ===== 單一任務卡片 ===== */
 .task {
+    color: #dddddd;
+    font-size: 13px;
     position: relative;
     background-color: #2d2d2d;
-    border-radius: 4px;
+    border: 2px solid #4d4d4d;
+    border-radius: 8px;
     padding: 2px 0px;
-    margin-top: 2px;
+    margin-top: 0px;
     margin-bottom: 0px;
-    color: #dddddd;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    font-size: 13px;
-    transition: background-color 0.4s;
+    transition: all 0.4s;
 }
 
 /* hover 效果 */
 .task:hover {
     background-color: #1d1d1d;
+    border: 2px solid #8d8d8d;
 }
 
 .no-hover .task {
