@@ -1,4 +1,4 @@
-import * as UTIL from './util.js';
+﻿import * as UTIL from './util.js';
 
 const statusEl = document.getElementById('status');
 const stateEl = document.getElementById('state');
@@ -8,11 +8,18 @@ const taskListEl = document.getElementById('taskList');
 
 const containerCache = {};
 
-const ICON_16_STYLE = {
-    width: '16px',
-    height: 'auto',
-    marginLeft: '10px',
-    marginRight: '10px'
+const ICON_18_STYLE = {
+    width: '18px',
+    height: '18px',
+    marginLeft: '6px',
+    marginRight: '6px'
+};
+
+const ICON_20_STYLE = {
+    width: '20px',
+    height: '20px',
+    marginLeft: '6px',
+    marginRight: '6px'
 };
 
 const ICON_24_STYLE = {
@@ -156,27 +163,29 @@ function createTaskEl(task) {
 
     const title = createDiv(`${taskId}-title`, 'task-title', UTIL.getTaskTitle(task));
 
-    const metaStatus = createDiv(`${taskId}-status`, '', UTIL.getTaskStatusText(task));
-    const metaRatioIcon = createIcon('icons/ratio.png', ICON_16_STYLE);
-    const metaRatioValue = createDiv(`${taskId}-ratio`, 'task-ratio', UTIL.getTaskRatioText(task));
-
-    const metaTop = createDiv(`${taskId}-meta-top`, 'task-meta');
-    metaTop.append(metaStatus, metaRatioIcon, metaRatioValue);
-
-    const progressContainer = createDiv(`${taskId}-bar`, 'task-progress');
-
-    const metaSize = createDiv(`${taskId}-size`, '', UTIL.formatSize(task.size ?? 0));
-    const metaProgressIcon = createIcon('icons/progress.png', ICON_16_STYLE);
+    const metaStatusIcon = createIcon('icons/status.png', ICON_18_STYLE);
+    const metaStatus = createDiv(`${taskId}-status`, 'task-meta-text', UTIL.getTaskStatusText(task));
+    const metaProgressIcon = createIcon('icons/progress.png', ICON_20_STYLE);
     const metaProgressValue = createDiv(
         `${taskId}-progress-value`,
-        '',
+        'task-meta-text',
         UTIL.getTaskProgressText(task)
     );
-    const metaSpeedIcon = createIcon('icons/speed.png', ICON_16_STYLE);
-    const metaSpeedValue = createDiv(`${taskId}-speed-value`, '', UTIL.getTaskSpeedText(task));
+    const metaRatioIcon = createIcon('icons/ratio.png', ICON_20_STYLE);
+    const metaRatioValue = createDiv(`${taskId}-ratio`, 'task-meta-text', UTIL.getTaskRatioText(task));
+
+    const metaTop = createDiv(`${taskId}-meta-top`, 'task-meta');
+    metaTop.append(metaStatusIcon, metaStatus, metaProgressIcon, metaProgressValue, metaRatioIcon, metaRatioValue);
+
+    const progressContainer = createDiv(`${taskId}-bar`, 'task-progress');
+    
+    const metaSizeIcon = createIcon('icons/storage.png', ICON_18_STYLE);
+    const metaSize = createDiv(`${taskId}-size`, 'task-meta-text', UTIL.formatSize(task.size ?? 0));
+    const metaSpeedIcon = createIcon('icons/speed.png', ICON_18_STYLE);
+    const metaSpeedValue = createDiv(`${taskId}-speed-value`, 'task-meta-text', UTIL.getTaskSpeedText(task));
 
     const metaBottom = createDiv(`${taskId}-meta-bottom`, 'task-meta');
-    metaBottom.append(metaSize, metaProgressIcon, metaProgressValue, metaSpeedIcon, metaSpeedValue);
+    metaBottom.append(metaSizeIcon, metaSize, metaSpeedIcon, metaSpeedValue);
 
     const actions = document.createElement('div');
     actions.className = 'task-actions';

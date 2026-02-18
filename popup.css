@@ -239,6 +239,11 @@ body {
     /* -webkit-text-stroke: 0.1px black; */
 }
 
+.task-meta-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 /* ===== 進度條 ===== */
 .task-progress {
     flex: 1;
