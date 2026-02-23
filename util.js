@@ -174,6 +174,27 @@ export function getTaskSpeedText(task) {
     return `D: ${formatSpeed(speedDown)} ／ U: ${formatSpeed(speedUp)}`;
 }
 
+export function getTaskTimeText(task) {
+    let time_text = " ／ ";
+
+    if (task.status === 'downloading' && task.additional?.detail?.create_time) {
+        let date = formatUnixTime(task.additional.detail.create_time);
+        time_text += `create time: ${date}`;
+    }
+    else if (task.status === 'seeding' && task.additional?.detail?.seedelapsed) {
+        let time = formatDuration(task.additional.detail.seedelapsed);
+        time_text += `seed elapsed: ${time}`;
+    }
+    else if (task.status === 'finished' && task.additional?.detail?.completed_time) {
+        let date = formatUnixTime(task.additional.detail.completed_time);
+        time_text += `completed time: ${date}`;
+    }
+    else
+        time_text += "-";
+    
+    return time_text;
+}
+
 export function getTaskDisplayRate(task) {
     return task.status === 'seeding' ? getRatio(task) : getProgress(task);
 }
@@ -223,4 +244,30 @@ export function getStatusColor(status) {
         default:
             return '#dddddd';
     }
+}
+
+export function formatUnixTime(timestamp) {
+    if (!timestamp || timestamp === 0) return 'N/A';
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString(undefined, { 
+        hour12: false,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+export function formatDuration(seconds) {
+    if (!seconds) return '0s';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0)
+        return `${h}h ${m}m ${s}s`;
+    else if (m > 0)
+        return `${m}m ${s}s`;
+    else
+        return `${s}s`;
 }

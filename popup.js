@@ -176,9 +176,10 @@ function createTaskEl(task) {
     const metaSize = createDiv(`${taskId}-size`, 'task-meta-text', UTIL.formatSize(task.size ?? 0));
     const metaSpeedIcon = createIcon('icons/speed.png', ICON_18_STYLE);
     const metaSpeedValue = createDiv(`${taskId}-speed-value`, 'task-meta-text', UTIL.getTaskSpeedText(task));
+    const metaTimeInfo = createDiv(`${taskId}-time-info`, 'task-meta-text', UTIL.getTaskTimeText(task));
 
     const metaBottom = createDiv(`${taskId}-meta-bottom`, 'task-meta');
-    metaBottom.append(metaSizeIcon, metaSize, metaSpeedIcon, metaSpeedValue);
+    metaBottom.append(metaSizeIcon, metaSize, metaSpeedIcon, metaSpeedValue, metaTimeInfo);
 
     const actions = document.createElement('div');
     actions.className = 'task-actions';
@@ -247,6 +248,9 @@ function updateTaskEl(task, li) {
 
     const metaSpeedValue = li.querySelector(`#${taskId}-speed-value`);
     if (metaSpeedValue) metaSpeedValue.textContent = UTIL.getTaskSpeedText(task);
+
+    const metaTimeInfo = li.querySelector(`#${taskId}-time-info`);
+    if (metaTimeInfo) metaTimeInfo.textContent = UTIL.getTaskTimeText(task);
 
     const startBtn = li.querySelector('.btn-start');
     const pauseBtn = li.querySelector('.btn-pause');

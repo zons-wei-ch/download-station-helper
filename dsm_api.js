@@ -101,7 +101,7 @@ export async function loginDSM(state) {
 // 任務相關 API (現在變得非常精簡)
 export const getTasks = (state) => 
     dsmRequest(state, "/webapi/DownloadStation/task.cgi", {
-        api: "SYNO.DownloadStation.Task", version: 3, method: "list", additional: "transfer"
+        api: "SYNO.DownloadStation.Task", version: 3, method: "list", additional: "detail,transfer"
     }).then(d => d.tasks || []);
 
 export const setTaskStatus = (state, id, method) => 
