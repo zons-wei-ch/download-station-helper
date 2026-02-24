@@ -176,23 +176,41 @@ export function getTaskSpeedText(task) {
 
 export function getTaskTimeText(task) {
     let time_text = " ／ ";
-
-    if (task.status === 'downloading' && task.additional?.detail?.create_time) {
-        let date = formatUnixTime(task.additional.detail.create_time);
-        time_text += `create time: ${date}`;
+    if (task.status === 'downloading') {
+        let eat = calculateETA(task);
+        time_text += `Estimated Time of Arrival: ${formatDuration(eat)}`;
     }
-    else if (task.status === 'seeding' && task.additional?.detail?.seedelapsed) {
-        let time = formatDuration(task.additional.detail.seedelapsed);
-        time_text += `seed elapsed: ${time}`;
+    else if (task.status === 'seeding') {
+        let time = formatDuration(task.additional?.detail?.seedelapsed);
+        time_text += `Seed Elapsed: ${time}`;
     }
-    else if (task.status === 'finished' && task.additional?.detail?.completed_time) {
-        let date = formatUnixTime(task.additional.detail.completed_time);
-        time_text += `completed time: ${date}`;
+    else if (task.status === 'finished') {
+        let date = formatUnixTime(task.additional?.detail?.completed_time);
+        time_text += `Completed Time: ${date}`;
     }
     else
         time_text += "-";
     
     return time_text;
+}
+
+export function calculateETA(task) {
+    // 1. 優先使用 API 提供的值 (如果有)
+    if (task.additional?.transfer?.eta !== undefined) {
+        return task.additional.transfer.eta;
+    }
+
+    // 2. API 沒提供時，自己動手算
+    const speed = task.additional?.transfer?.speed_download || 0;
+    const totalSize = task.size || 0;
+    const downloaded = task.additional?.transfer?.size_downloaded || 0;
+
+    if (speed > 0 && totalSize > downloaded) {
+        const remainingBytes = totalSize - downloaded;
+        return Math.floor(remainingBytes / speed); // 回傳秒數
+    }
+
+    return -1; // 無法計算
 }
 
 export function getTaskDisplayRate(task) {
@@ -247,7 +265,7 @@ export function getStatusColor(status) {
 }
 
 export function formatUnixTime(timestamp) {
-    if (!timestamp || timestamp === 0) return 'N/A';
+    if (!timestamp || timestamp === 0) return '-';
     const date = new Date(timestamp * 1000);
     return date.toLocaleString(undefined, { 
         hour12: false,
@@ -260,14 +278,24 @@ export function formatUnixTime(timestamp) {
 }
 
 export function formatDuration(seconds) {
-    if (!seconds) return '0s';
-    const h = Math.floor(seconds / 3600);
+    if (!seconds || seconds <= 0) return '-';
+
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    if (h > 0)
+
+    if (d > 0) {
+        // 有天數時，顯示：1d 5h 20m (通常省略秒，避免文字過長)
+        return `${d}d ${h}h ${m}m`;
+    } else if (h > 0) {
+        // 有小時時，顯示：5h 20m 30s
         return `${h}h ${m}m ${s}s`;
-    else if (m > 0)
+    } else if (m > 0) {
+        // 有分鐘時，顯示：20m 30s
         return `${m}m ${s}s`;
-    else
+    } else {
+        // 僅有秒
         return `${s}s`;
+    }
 }
