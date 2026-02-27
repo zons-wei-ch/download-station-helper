@@ -119,36 +119,50 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
 });
 
-function injectToast(tabId, title, icon) {
+/**
+ * 注入 SweetAlert2 通知到目標分頁
+ * 支援 success, error, loading 等類型
+ */
+function injectToast(tabId, title, type = 'success') {
     chrome.scripting.executeScript({
         target: { tabId: tabId },
-        files: ['./lib/sweetalert2.all.min.js'] // 1. 先確保分頁載入了 Swal 函式庫
+        files: ['./lib/sweetalert2.all.min.js']
     }).then(() => {
         chrome.scripting.executeScript({
             target: { tabId: tabId },
-            func: (msg, iconType) => {
-                // 2. 這裡的代碼是在網頁環境 (Content Script) 執行的，有 window 物件
+            func: (msg, mode) => {
                 const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                const toast = Swal.mixin({
+                
+                // 基本配置
+                const config = {
+                    title: msg,
+                    background: isDark ? '#444' : '#ddd',
+                    color: isDark ? '#ddd' : '#444',
                     toast: true,
                     position: 'top',
                     showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true,
+                    timer: mode === 'loading' ? null : 1000, // loading 時不自動關閉
+                    timerProgressBar: mode !== 'loading',
                     didOpen: (toast) => {
-                        toast.style.fontSize = '20px'; // 調整你想要的大小 (預設通常約 14px)
-                        toast.style.width = 'auto';    // 讓寬度隨字體自動伸展
+                        toast.style.fontSize = '20px';
+                        toast.style.width = 'auto';
+                        if (mode === 'loading') {
+                            Swal.showLoading(); // 顯示 loading 動畫
+                        }
                     }
-                });
+                };
 
-                toast.fire({
-                    icon: iconType,
-                    title: msg,
-                    background: isDark ? '#444' : '#ddd',
-                    color: isDark ? '#ddd' : '#444'
-                });
+                if (mode !== 'loading') {
+                    config.icon = mode;
+                }
+
+                // 執行彈窗
+                const swalInstance = Swal.fire(config);
+
+                // 如果是成功或失敗，2秒後清除 (timer 處理)
+                // 如果是 loading，則需要後續呼叫 Swal.close() 
             },
-            args: [title, icon]
+            args: [title, type]
         });
     }).catch(err => console.error("Script injection failed: ", err));
 }
@@ -161,16 +175,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         const downloadUrl = info.linkUrl;
         
         try {
+            injectToast(tab.id, "Adding download task...", "loading");
             // 執行加入任務
             const result = await DSM_API.createTask(state, downloadUrl);
             
             // 成功：注入綠色通知
-            injectToast(tab.id, "Task Added Successfully", "success");
+            injectToast(tab.id, "Task added successfully", "success");
             refreshTasks();
         } catch (error) {
             // 失敗：注入紅色通知
             console.error("Context Menu Add Task Failed:", error);
-            injectToast(tab.id, `Failed: ${error.message}`, "error");
+            injectToast(tab.id, `Fail: ${error.message}`, "error");
         }
     }
 });
