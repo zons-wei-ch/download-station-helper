@@ -119,6 +119,62 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
 });
 
+function injectToast(tabId, title, icon) {
+    chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['./lib/sweetalert2.all.min.js'] // 1. 先確保分頁載入了 Swal 函式庫
+    }).then(() => {
+        chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: (msg, iconType) => {
+                // 2. 這裡的代碼是在網頁環境 (Content Script) 執行的，有 window 物件
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const toast = Swal.mixin({
+                    toast: true,
+                    position: 'top',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.style.fontSize = '20px'; // 調整你想要的大小 (預設通常約 14px)
+                        toast.style.width = 'auto';    // 讓寬度隨字體自動伸展
+                    }
+                });
+
+                toast.fire({
+                    icon: iconType,
+                    title: msg,
+                    background: isDark ? '#444' : '#ddd',
+                    color: isDark ? '#ddd' : '#444'
+                });
+            },
+            args: [title, icon]
+        });
+    }).catch(err => console.error("Script injection failed: ", err));
+}
+
+/* =========================
+   監聽點擊事件
+========================= */
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+    if (info.menuItemId === "sendToDownloadStation") {
+        const downloadUrl = info.linkUrl;
+        
+        try {
+            // 執行加入任務
+            const result = await DSM_API.createTask(state, downloadUrl);
+            
+            // 成功：注入綠色通知
+            injectToast(tab.id, "Task Added Successfully", "success");
+            refreshTasks();
+        } catch (error) {
+            // 失敗：注入紅色通知
+            console.error("Context Menu Add Task Failed:", error);
+            injectToast(tab.id, `Failed: ${error.message}`, "error");
+        }
+    }
+});
+
 /* =========================
    監聽儲存空間變動
 ========================= */
@@ -143,6 +199,15 @@ chrome.storage.onChanged.addListener(async (changes, areaName) => {
 /* =========================
    生命週期與事件
 ========================= */
+function createContextMenu() {
+    // 安裝/啟動時建立右鍵選單
+    chrome.contextMenus.create({
+        id: "sendToDownloadStation",
+        title: "Send to Download Station",
+        contexts: ["link"] // 只有在連結上按右鍵才出現
+    });
+}
+
 async function setupAlarm() {
     const settings = await DSM_API.getSettings();
     const intervalInMinutes = (settings.refreshInterval / 1000) / 60;
@@ -158,11 +223,13 @@ async function setupAlarm() {
 chrome.runtime.onStartup.addListener(async () => {
     refreshTasks();
     setupAlarm();
+    createContextMenu();
 });
 
 chrome.runtime.onInstalled.addListener(async () => {
     refreshTasks();
     setupAlarm();
+    createContextMenu();
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
@@ -177,3 +244,4 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
 });
 
 globalThis.addEventListener('online', refreshTasks);
+
