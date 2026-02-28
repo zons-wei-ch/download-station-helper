@@ -6,7 +6,7 @@
     "permissions": [
         "notifications",
         "contextMenus",
-        "scripting",
+        "activeTab",
         "storage",
         "alarms",
         "idle"

@@ -119,54 +119,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
 });
 
-/**
- * 注入 SweetAlert2 通知到目標分頁
- * 支援 success, error, loading 等類型
- */
-function injectToast(tabId, title, type = 'success') {
-    chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        files: ['./lib/sweetalert2.all.min.js']
-    }).then(() => {
-        chrome.scripting.executeScript({
-            target: { tabId: tabId },
-            func: (msg, mode) => {
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                
-                // 基本配置
-                const config = {
-                    title: msg,
-                    background: isDark ? '#444' : '#ddd',
-                    color: isDark ? '#ddd' : '#444',
-                    toast: true,
-                    position: 'top',
-                    showConfirmButton: false,
-                    timer: mode === 'loading' ? null : 1000, // loading 時不自動關閉
-                    timerProgressBar: mode !== 'loading',
-                    didOpen: (toast) => {
-                        toast.style.fontSize = '20px';
-                        toast.style.width = 'auto';
-                        if (mode === 'loading') {
-                            Swal.showLoading(); // 顯示 loading 動畫
-                        }
-                    }
-                };
-
-                if (mode !== 'loading') {
-                    config.icon = mode;
-                }
-
-                // 執行彈窗
-                const swalInstance = Swal.fire(config);
-
-                // 如果是成功或失敗，2秒後清除 (timer 處理)
-                // 如果是 loading，則需要後續呼叫 Swal.close() 
-            },
-            args: [title, type]
-        });
-    }).catch(err => console.error("Script injection failed: ", err));
-}
-
 /* =========================
    監聽點擊事件
 ========================= */
@@ -174,18 +126,35 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === "sendToDownloadStation") {
         const downloadUrl = info.linkUrl;
         
+        // 1. 通知 content.js 顯示 Loading (透過傳送訊息)
+        chrome.tabs.sendMessage(tab.id, { 
+            action: "showUI", 
+            type: 'loading', 
+            title: 'Adding download task...' 
+        }).catch(() => {/* 頁面未載入 content.js 時忽略 */});
+
         try {
-            injectToast(tab.id, "Adding download task...", "loading");
-            // 執行加入任務
+            // 2. 執行加入任務
             const result = await DSM_API.createTask(state, downloadUrl);
             
-            // 成功：注入綠色通知
-            injectToast(tab.id, "Task added successfully", "success");
+            // 3. 成功：通知 content.js 顯示成功
+            chrome.tabs.sendMessage(tab.id, { 
+                action: "showUI", 
+                type: 'success', 
+                title: 'Success', 
+                text: 'Task added successfully!',
+                timer: 1000
+            }).catch(() => {});
+            
             refreshTasks();
         } catch (error) {
-            // 失敗：注入紅色通知
-            console.error("Context Menu Add Task Failed:", error);
-            injectToast(tab.id, `Fail: ${error.message}`, "error");
+            // 4. 失敗：通知 content.js 顯示失敗
+            chrome.tabs.sendMessage(tab.id, { 
+                action: "showUI", 
+                type: 'error', 
+                title: 'Fail', 
+                text: error.message 
+            }).catch(() => {});
         }
     }
 });

@@ -22,6 +22,18 @@ function showAlert({ type = 'info', title = '', text = '', timer = null, showCon
     return Swal.fire(config);
 }
 
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.action === "showUI") {
+        showAlert({
+            type: msg.type,
+            title: msg.title,
+            text: msg.text || '',
+            timer: msg.timer || null,
+            showConfirm: msg.type !== 'loading' && !msg.timer
+        });
+    }
+});
+
 document.addEventListener('click', (e) => {
     const anchor = e.target.closest('a');
     
