@@ -1,22 +1,38 @@
-function showAlert({ type = 'info', title = '', text = '', timer = null, showConfirm = true }) {
+function showNotify({ type = 'info', title = '', text = '', timer = null, showConfirm = true }) {
     const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     const config = {
         icon: type,
         title: title,
         text: text,
+        position: 'center',
         background: isDarkMode ? '#444' : '#ddd',
         color: isDarkMode ? '#ddd' : '#444',
         showConfirmButton: showConfirm,
         confirmButtonText: 'Confirm',
-        timer: timer
+        timer: timer,
+        didOpen: (toast) => {
+            // 1. 設定整個彈窗的基礎字體粗細
+            toast.style.fontSize = '16px';
+            toast.style.fontWeight = 500; // 您可以設定 bold, 500, 600 等
+            toast.style.width = 'auto';
+
+            // 2. 如果您只想針對「標題」加粗，可以這樣寫：
+            const titleElement = toast.querySelector('.swal2-title');
+            if (titleElement) {
+                titleElement.style.fontWeight = 600; // 僅標題加粗
+            }
+            
+            // 如果是 loading 模式，則執行原有邏輯
+            if (type === 'loading') {
+                Swal.showLoading();
+            }
+        }
     };
 
-    // 如果是 Loading 模式，特殊處理
     if (type === 'loading') {
         delete config.icon;
         config.allowOutsideClick = false;
-        config.didOpen = () => Swal.showLoading();
     }
 
     return Swal.fire(config);
@@ -24,7 +40,7 @@ function showAlert({ type = 'info', title = '', text = '', timer = null, showCon
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.action === "showUI") {
-        showAlert({
+        showNotify({
             type: msg.type,
             title: msg.title,
             text: msg.text || '',
@@ -41,7 +57,7 @@ document.addEventListener('click', (e) => {
         
         // 1. 檢查環境
         if (!chrome.runtime?.id) {
-            showAlert({ 
+            showNotify({ 
                 type: 'warning', 
                 title: 'Fail', 
                 text: 'Extension updated. Please refresh the page.' 
@@ -53,7 +69,7 @@ document.addEventListener('click', (e) => {
 
         try {
             // 2. 顯示處理中
-            showAlert({ title: 'Adding download task...', type: 'loading', showConfirm: false });
+            showNotify({ title: 'Adding download task...', type: 'loading', showConfirm: false });
             
             chrome.runtime.sendMessage({
                 action: "createTask",
@@ -61,12 +77,12 @@ document.addEventListener('click', (e) => {
             }, (response) => {
                 // 處理響應...
                 if (chrome.runtime.lastError) {
-                    showAlert({ type: 'error', title: 'Error', text: chrome.runtime.lastError.message });
+                    showNotify({ type: 'error', title: 'Error', text: chrome.runtime.lastError.message });
                     return;
                 }
                 if (response && response.success) {
                     // 3. 成功通知（1秒後自動關閉）
-                    showAlert({ 
+                    showNotify({ 
                         type: 'success', 
                         title: 'Success', 
                         text: 'Task added successfully!', 
@@ -76,7 +92,7 @@ document.addEventListener('click', (e) => {
                 }
                 else {
                     // 4. 失敗通知
-                    showAlert({ 
+                    showNotify({ 
                         type: 'error', 
                         title: 'Fail', 
                         text: response?.error || "Please check settings" 
@@ -85,7 +101,7 @@ document.addEventListener('click', (e) => {
             });
         }
         catch (error) {
-            showAlert({ type: 'error', title: 'Context Error', text: error.message });
+            showNotify({ type: 'error', title: 'Context Error', text: error.message });
         }
     }
 }, true);
