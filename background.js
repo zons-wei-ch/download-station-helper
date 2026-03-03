@@ -55,6 +55,15 @@ async function refreshTasks() {
                 }
             });
         }
+        if (settings.enableNotifyForError) {
+            tasks.forEach(task => {
+                const preTask = state.latestTasks.find(t => t.id === task.id);
+                
+                if (task.status === 'error' && preTask && preTask.status !== 'error') {
+                    showCompletionNotification(task.title, "Error");
+                }
+            });
+        }
 
         state.latestTasks = tasks;
         updateBadge(tasks.length);

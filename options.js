@@ -14,6 +14,7 @@ const sortFieldSelect = document.getElementById('sortField');
 const sortOrderSelect = document.getElementById('sortOrder');
 const enableNotifyForSeedingCheckbox = document.getElementById("enableNotifyForSeeding");
 const enableNotifyForFinishedCheckbox = document.getElementById("enableNotifyForFinished");
+const enableNotifyForErrorCheckbox = document.getElementById("enableNotifyForError");
 
 // --- 密碼顯示/隱藏功能 ---
 togglePasswordBtn.onclick = (e) => {
@@ -79,6 +80,7 @@ saveBtn.onclick = () => {
     const sortOrder = sortOrderSelect.value;
     const enableNotifyForSeeding = enableNotifyForSeedingCheckbox.checked;
     const enableNotifyForFinished = enableNotifyForFinishedCheckbox.checked;
+    const enableNotifyForError = enableNotifyForErrorCheckbox.checked;
 
     if (!host || !account) {
         UTIL.showNotify("ipput Host and Account !", "error", "top");
@@ -95,7 +97,8 @@ saveBtn.onclick = () => {
             sortField,
             sortOrder,
             enableNotifyForSeeding,
-            enableNotifyForFinished
+            enableNotifyForFinished,
+            enableNotifyForError
         },
         () => {
             UTIL.showNotify("Settings Saved !", "success", "top");
@@ -114,7 +117,8 @@ chrome.storage.sync.get(
         sortField: "time",
         sortOrder: "desc",
         enableNotifyForSeeding: false,
-        enableNotifyForFinished: false
+        enableNotifyForFinished: false,
+        enableNotifyForError: false
     },
     data => {
         hostInput.value = data.host;
@@ -133,6 +137,7 @@ chrome.storage.sync.get(
         sortOrderSelect.value = data.sortOrder;
         enableNotifyForSeedingCheckbox.checked = data.enableNotifyForSeeding;
         enableNotifyForFinishedCheckbox.checked = data.enableNotifyForFinished;
+        enableNotifyForErrorCheckbox.checked = data.enableNotifyForError;
         updateSortOptionsState();
     }
 );
