@@ -256,6 +256,9 @@ body {
 .task[data-status="waiting"] .task-title {
     color: #aaaaaa;
 }
+.task[data-status="hash_checking"] .task-title {
+    color: #aaaaaa;
+}
 .task[data-status="downloading"] .task-title {
     color: #1199dd;
 }
@@ -273,6 +276,9 @@ body {
 }
 .task[data-status="error"] .task-title {
     color: #cc3322;
+}
+.task[data-status="unknown"] .task-title {
+    color: #888888;
 }
 
 /* ===== 刪除按鈕 ===== */

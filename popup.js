@@ -187,12 +187,18 @@ function createTaskEl(task) {
     const startBtn = createActionButton('icons/start.png', 'Resume Task', 'task-action-btn btn-start');
     startBtn.onclick = e => {
         e.stopPropagation();
+        li.setAttribute('data-status', 'unknown');
+        startBtn.classList.add('hidden');
+        pauseBtn.classList.add('hidden');
         chrome.runtime.sendMessage({ action: 'startTask', taskId: task.id });
     };
 
     const pauseBtn = createActionButton('icons/pause.png', 'Pause Task', 'task-action-btn btn-pause');
     pauseBtn.onclick = e => {
         e.stopPropagation();
+        li.setAttribute('data-status', 'unknown');
+        startBtn.classList.add('hidden');
+        pauseBtn.classList.add('hidden');
         chrome.runtime.sendMessage({ action: 'pauseTask', taskId: task.id });
     };
 

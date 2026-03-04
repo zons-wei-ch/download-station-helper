@@ -247,6 +247,8 @@ export function getStatusColor(status) {
     switch (status) {
         case 'waiting':
             return '#aaaaaa';
+        case 'hash_checking':
+            return '#aaaaaa';
         case 'downloading':
             return '#1199dd';
         case 'finishing':
@@ -259,6 +261,8 @@ export function getStatusColor(status) {
             return '#888888';
         case 'error':
             return '#cc3322';
+        case 'unknown':
+            return '#888888';
         default:
             return '#dddddd';
     }
