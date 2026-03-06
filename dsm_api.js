@@ -45,16 +45,16 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
         clearTimeout(timeoutId);
 
         const data = await res.json();
-
+        console.log(data);
         if (!data.success) {
             // 將 105 (過期) 或某些導致 400 的情況視為需重登
-            if ((errCode === 105 || errCode === 400) && !isLoginPath) {
+            if ((data.error.code === 105 || data.error.code === 400) && !isLoginPath) {
                 state.sid = null;
                 state.isLogin = false;
                 await loginDSM(state);
                 return dsmRequest(state, path, params, method);
             }
-            throw new Error(`API Error: ${errCode}`);
+            throw new Error(`API Error: ${data.error.code}`);
         }
         return data.data || data;
     } catch (error) {
