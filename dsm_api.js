@@ -45,7 +45,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
         clearTimeout(timeoutId);
 
         const data = await res.json();
-        console.log(data);
+        
         if (!data.success) {
             // 將 105 (過期) 或某些導致 400 的情況視為需重登
             if ((data.error.code === 105 || data.error.code === 400) && !isLoginPath) {
