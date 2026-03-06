@@ -1,4 +1,5 @@
 let loginPromise = null; // 登入鎖
+let lastLoginFailureTime = 0; // 記錄最後一次登入失敗的時間
 
 // 基礎設定讀取
 export const getSettings = () => 
@@ -63,33 +64,39 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
     }
 }
 
-// 登入邏輯
-export async function loginDSM(state) {
+async function loginDSM(state) {
     if (loginPromise) return loginPromise;
+
+    // 冷卻檢查邏輯
+    const now = Date.now();
+    const waitTime = 5000; // 5 秒冷卻
+    if (now - lastLoginFailureTime < waitTime) {
+        const remaining = Math.ceil((waitTime - (now - lastLoginFailureTime)) / 1000);
+        throw new Error(`Login cooling down: ${remaining}s remaining`);
+    }
 
     loginPromise = (async () => {
         try {
             const { account, password } = await getSettings();
-            if (!account) throw new Error("Account is empty");
-
-            // 這裡呼叫 dsmRequest 會因為 isLoginPath 為 true 而跳過自動登入檢查
+            
             const result = await dsmRequest(state, "/webapi/auth.cgi", {
-                api: "SYNO.API.Auth", version: 6, method: "login",
+                api: "SYNO.API.Auth", version: 3, method: "login",
                 account, passwd: password, session: "DownloadStation", format: "sid"
             });
 
             if (result && result.sid) {
                 state.sid = result.sid;
                 state.isLogin = true;
+                lastLoginFailureTime = 0; // 登入成功，重置失敗時間
                 return state.sid;
             } else {
                 throw new Error("Login failed: No SID returned");
             }
         } catch (err) {
-            // 登入失敗，徹底清空狀態
             state.sid = null;
             state.isLogin = false;
-            throw err; // 讓 dsmRequest 接收到錯誤
+            lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
+            throw err;
         } finally {
             loginPromise = null;
         }

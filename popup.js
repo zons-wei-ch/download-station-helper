@@ -321,29 +321,46 @@ function wakeBackground(retries = 5) {
 
 async function initPopupWithRetry(retries = 3) {
     statusEl.className = 'status error';
-    statusEl.textContent = 'Waking background...';
-    stateEl.src = 'icons/wait.png';
+    statusEl.textContent = 'Waking background...'; //
+    stateEl.src = 'icons/wait.png'; //
 
     try {
-        await wakeBackground();
-        const res = await chrome.runtime.sendMessage({ action: 'getLatestTasks' });
+        await wakeBackground(); //
+        const res = await chrome.runtime.sendMessage({ action: 'getLatestTasks' }); //
 
         if (res?.success) {
-            updateStatus(res.tasks);
-            renderTasks(res.tasks);
+            updateStatus(res.tasks); //
+            renderTasks(res.tasks); //
             return;
         }
 
-        statusEl.textContent = 'DSM Offline...';
-        stateEl.src = 'icons/disconnected.png';
+        // 如果失敗的原因是登入冷卻中
+        if (res?.error && res.error.includes("Please wait")) {
+            statusEl.textContent = res.error; // 顯示例如 "Please wait 5s..."
+            stateEl.src = 'icons/wait.png';
+            // 可以在 1 秒後自動重試，直到冷卻結束
+            setTimeout(() => initPopupWithRetry(0), 1000); 
+            return;
+        }
+
+        statusEl.textContent = 'DSM Offline...'; //
+        stateEl.src = 'icons/disconnected.png'; //
     } catch (error) {
-        if (retries > 0) {
-            setTimeout(() => initPopupWithRetry(retries - 1), 2000);
+        // 處理 Promise reject 的錯誤
+        if (error.message.includes("Please wait")) {
+            statusEl.textContent = error.message;
+            stateEl.src = 'icons/wait.png';
+            setTimeout(() => initPopupWithRetry(0), 1000);
             return;
         }
 
-        statusEl.textContent = 'Background not responding';
-        stateEl.src = 'icons/disconnected.png';
+        if (retries > 0) {
+            setTimeout(() => initPopupWithRetry(retries - 1), 2000); //
+            return;
+        }
+
+        statusEl.textContent = 'Background not responding'; //
+        stateEl.src = 'icons/disconnected.png'; //
     }
 }
 

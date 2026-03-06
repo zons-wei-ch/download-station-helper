@@ -102,8 +102,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 sendResponse({ success: false, error: err.message });
             });
     }
-    else if (msg.action === "getLatestTasks") {
-        sendResponse({ success: state.isLogin, tasks: state.latestTasks });
+    else if (msg.action === 'getLatestTasks') {
+        DSM_API.getTasks(state)
+            .then(tasks => {
+                state.latestTasks = tasks; //
+                sendResponse({ success: true, tasks }); //
+            })
+            .catch(err => {
+                // 將冷卻中或連線失敗的錯誤傳回給 popup
+                sendResponse({ success: false, error: err.message });
+            });
+        return true; // 保持異步通道開啟
     }
     else if (msg.action === "startTask") {
         DSM_API.setTaskStatus(state, msg.taskId, "resume")
