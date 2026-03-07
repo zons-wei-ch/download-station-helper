@@ -127,9 +127,9 @@ body {
 .status {
     flex: 1;
     padding: 8px 12px;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
-    /*-webkit-text-stroke: 0.1px black; */
+    /* -webkit-text-stroke: 0.1px #ddd; */
 }
 
 .status.ok {
