@@ -64,7 +64,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
     }
 }
 
-async function loginDSM(state) {
+export async function loginDSM(state, customSettings = null) {
     if (loginPromise) return loginPromise;
 
     // 冷卻檢查邏輯
@@ -77,31 +77,32 @@ async function loginDSM(state) {
 
     loginPromise = (async () => {
         try {
-            const { account, password } = await getSettings();
-            
+            // 如果有傳入 customSettings (測試連線用)，就用它；否則讀取 storage
+            const settings = customSettings || await getSettings();
+            const { account, password } = settings;
+
             const result = await dsmRequest(state, "/webapi/auth.cgi", {
                 api: "SYNO.API.Auth", version: 3, method: "login",
                 account, passwd: password, session: "DownloadStation", format: "sid"
-            });
+            }, 'GET', customSettings); // 把 settings 傳給 dsmRequest
 
             if (result && result.sid) {
                 state.sid = result.sid;
                 state.isLogin = true;
                 lastLoginFailureTime = 0; // 登入成功，重置失敗時間
                 return state.sid;
-            } else {
-                throw new Error("Login failed: No SID returned");
             }
+            throw new Error("Login failed");
         } catch (err) {
             state.sid = null;
             state.isLogin = false;
-            lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
+            if (!customSettings)
+                lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
             throw err;
         } finally {
             loginPromise = null;
         }
     })();
-
     return loginPromise;
 }
 

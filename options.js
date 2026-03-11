@@ -36,24 +36,28 @@ testBtn.onclick = async () => {
     const account = accountInput.value.trim();
     const password = passwordInput.value;
 
-    if (!host || !account) {
-        UTIL.showNotify("Please input Host and Account before testing !", "error", "top");
+    if (!host || !account || !password) {
+        UTIL.showNotify("Please input Host, Account and Password!", "error", "top");
         return;
     }
     
     testBtn.disabled = true;
+    testBtn.textContent = "Testing..."; // 給使用者一點視覺回饋
 
-    // 先暫存目前輸入的資訊到 storage，讓 background.js 能讀取到最新的資訊進行測試
-    chrome.storage.sync.set({ host, account, password }, () => {
-        // 呼叫 background.js 的 login action
-        chrome.runtime.sendMessage({ action: "login" }, (response) => {
-            testBtn.disabled = false;
-            if (response && response.success) {
-                UTIL.showNotify("Login Successful !", "success", "top");
-            } else {
-                UTIL.showNotify(`Failed: ${response.error || "Unknown error"}`, "error", "top");
-            }
-        });
+    // 改為直接把資料傳過去，不先存入 storage
+    chrome.runtime.sendMessage({ 
+        action: "login", 
+        data: { host, account, password } 
+    }, (response) => {
+        testBtn.disabled = false;
+        testBtn.textContent = "Test Connection";
+
+        if (response && response.success) {
+            UTIL.showNotify("Connection Successful! You can save now.", "success", "top");
+            // 成功後，你可以選擇自動幫使用者按儲存，或讓使用者手動按
+        } else {
+            UTIL.showNotify(`Failed: ${response.error || "Unknown error"}`, "error", "top");
+        }
     });
 };
 
