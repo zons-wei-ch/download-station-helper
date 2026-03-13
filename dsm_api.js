@@ -1,3 +1,5 @@
+import * as UTIL from './util.js';
+
 let loginPromise = null; // 登入鎖
 let lastLoginFailureTime = 0; // 記錄最後一次登入失敗的時間
 
@@ -47,14 +49,17 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
         const data = await res.json();
         
         if (!data.success) {
+            const errorCode = data.error?.code;
+
             // 將 105 (過期) 或某些導致 400 的情況視為需重登
-            if ((data.error.code === 105 || data.error.code === 400) && !isLoginPath) {
+            if ((errorCode === 105 || errorCode === 400) && !isLoginPath) {
                 state.sid = null;
                 state.isLogin = false;
                 await loginDSM(state);
                 return dsmRequest(state, path, params, method);
             }
-            throw new Error(`API Error: ${data.error.code}`);
+            const errorDesc = UTIL.genErrorDesc(errorCode);
+            throw new Error(`API Error. Code: ${errorCode} Desc: ${errorDesc}`);
         }
         return data.data || data;
     } catch (error) {
@@ -78,7 +83,10 @@ export async function loginDSM(state) {
     loginPromise = (async () => {
         try {
             const { account, password } = await getSettings();
-            
+            if (!account || !password) {
+                throw new Error("Missing required settings: Account, or Password.");
+            }
+
             const result = await dsmRequest(state, "/webapi/auth.cgi", {
                 api: "SYNO.API.Auth", version: 3, method: "login",
                 account, passwd: password, session: "DownloadStation", format: "sid"

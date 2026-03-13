@@ -53,10 +53,15 @@ testBtn.onclick = async () => {
         testBtn.textContent = "Test Connection";
 
         if (response && response.success) {
-            UTIL.showNotify("Connection Successful!\nSave now.", "success", "top");
+            UTIL.showNotify("Login Successful!\nSave now.", "success", "top", 2000);
             // 成功後，你可以選擇自動幫使用者按儲存，或讓使用者手動按
         } else {
-            UTIL.showNotify(`Error: ${response.error || "Unknown error"}`, "error", "top");
+            if (response.error) {
+                let errorMsg = `API Error -\nCode: ${response.error}\nDesc: ${UTIL.genErrorDesc(response.error)}`;
+                UTIL.showNotify(errorMsg, "error", "top", 6000);
+            }
+            else
+                UTIL.showNotify("Undefined Err.", "error", "top", 6000);
         }
     });
 };
