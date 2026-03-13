@@ -93,19 +93,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         refreshTasks();
     } 
     else if (msg.action === "login") {
-        // 這裡我們需要一個特殊的測試方法，不影響目前 background 的 state
         (async () => {
             try {
-                // 模擬一個暫時的 state 進行測試
-                const fakeState = { sid: null, isLogin: false };
+                const result = await DSM_API.loginPure(msg.data);
                 
-                // 這裡稍微調整 DSM_API，讓它可以接受外部傳入的 credentials
-                // 或者直接呼叫 DSM_API.loginDSM(tempState, msg.data)
-                const result = await DSM_API.loginDSM(fakeState, msg.data);
-                
-                if (result) {
+                if (result.success)
                     sendResponse({ success: true });
-                }
+                else
+                    sendResponse({ success: false, error: result.error.code });
             } catch (error) {
                 sendResponse({ success: false, error: error.message });
             }

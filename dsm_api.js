@@ -64,7 +64,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
     }
 }
 
-export async function loginDSM(state, customSettings = null) {
+export async function loginDSM(state) {
     if (loginPromise) return loginPromise;
 
     // 冷卻檢查邏輯
@@ -77,33 +77,57 @@ export async function loginDSM(state, customSettings = null) {
 
     loginPromise = (async () => {
         try {
-            // 如果有傳入 customSettings (測試連線用)，就用它；否則讀取 storage
-            const settings = customSettings || await getSettings();
-            const { account, password } = settings;
-
+            const { account, password } = await getSettings();
+            
             const result = await dsmRequest(state, "/webapi/auth.cgi", {
                 api: "SYNO.API.Auth", version: 3, method: "login",
                 account, passwd: password, session: "DownloadStation", format: "sid"
-            }, 'GET', customSettings); // 把 settings 傳給 dsmRequest
+            });
 
             if (result && result.sid) {
                 state.sid = result.sid;
                 state.isLogin = true;
                 lastLoginFailureTime = 0; // 登入成功，重置失敗時間
                 return state.sid;
+            } else {
+                throw new Error("Login failed: No SID returned");
             }
-            throw new Error("Login failed");
         } catch (err) {
             state.sid = null;
             state.isLogin = false;
-            if (!customSettings)
-                lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
+            lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
             throw err;
         } finally {
             loginPromise = null;
         }
     })();
+
     return loginPromise;
+}
+
+export async function loginPure(data) {
+    const pureHost = data.host.replace(/^https?:\/\//, '');
+    const protocol = pureHost.endsWith(':5001') ? 'https' : 'http';
+    
+    // 使用 URLSearchParams 建構子直接組合參數
+    const params = new URLSearchParams({
+        api: "SYNO.API.Auth", version: 3, method: "login",
+        account: data.account, passwd: data.password,
+        session: "DownloadStation", format: "sid"
+    });
+
+    const url = `${protocol}://${pureHost}/webapi/auth.cgi?${params}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+
+    try {
+        const res = await fetch(url, { signal: controller.signal, credentials: "include" });
+        return await res.json();
+    } catch (err) {
+        throw new Error(err.name === 'AbortError' ? "Timeout" : `Network: ${err.message}`);
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 // 任務相關 API (現在變得非常精簡)

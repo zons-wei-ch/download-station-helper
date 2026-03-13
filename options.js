@@ -53,10 +53,10 @@ testBtn.onclick = async () => {
         testBtn.textContent = "Test Connection";
 
         if (response && response.success) {
-            UTIL.showNotify("Connection Successful! You can save now.", "success", "top");
+            UTIL.showNotify("Connection Successful!\nSave now.", "success", "top");
             // 成功後，你可以選擇自動幫使用者按儲存，或讓使用者手動按
         } else {
-            UTIL.showNotify(`Failed: ${response.error || "Unknown error"}`, "error", "top");
+            UTIL.showNotify(`Error: ${response.error || "Unknown error"}`, "error", "top");
         }
     });
 };
