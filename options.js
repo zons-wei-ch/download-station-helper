@@ -53,8 +53,8 @@ testBtn.onclick = async () => {
         testBtn.textContent = "Test Connection";
 
         if (response && response.success) {
-            UTIL.showNotify("Login Successful!\nSave now.", "success", "top", 2000);
-            // 成功後，你可以選擇自動幫使用者按儲存，或讓使用者手動按
+            UTIL.showNotify("Login Successful !", "success", "top", 2000);
+            chrome.storage.sync.set({host, account, password});
         } else {
             if (response.error) {
                 if (response.error.message)
