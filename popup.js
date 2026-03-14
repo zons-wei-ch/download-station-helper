@@ -339,7 +339,7 @@ async function initPopupWithRetry(retries = 3) {
             statusEl.textContent = res.error; // 顯示例如 "Please wait 5s..."
             stateEl.src = 'icons/wait.png';
             // 可以在 1 秒後自動重試，直到冷卻結束
-            setTimeout(() => initPopupWithRetry(0), 2000); 
+            setTimeout(() => initPopupWithRetry(0), 1200); 
             return;
         }
 
