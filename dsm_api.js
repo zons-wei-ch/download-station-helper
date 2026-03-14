@@ -12,8 +12,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
     const settings = await getSettings();
     if (!settings.host) throw new Error("NAS Host not set");
     
-    const isLoginPath = path === "/webapi/auth.cgi";
-    if (!isLoginPath && !state.sid) {
+    if (!state.sid) {
         try {
             await loginDSM(state);
         } catch (loginError) {
@@ -50,7 +49,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
             const errorCode = data.error?.code;
 
             // 將 105 (過期) 或某些導致 400 的情況視為需重登
-            if ((errorCode === 105 || errorCode === 400) && !isLoginPath) {
+            if (errorCode === 105 || errorCode === 400) {
                 state.sid = null;
                 state.isLogin = false;
                 await loginDSM(state);
@@ -70,9 +69,9 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
 export async function loginDSM(state) {
     if (loginPromise) return loginPromise;
 
-    // 冷卻檢查邏輯
+    // 冷卻檢查邏輯保持不變
     const now = Date.now();
-    const waitTime = 5000; // 5 秒冷卻
+    const waitTime = 5000; 
     if (now - lastLoginFailureTime < waitTime) {
         const remaining = Math.ceil((waitTime - (now - lastLoginFailureTime)) / 1000);
         throw new Error(`Login cooling down: ${remaining}s remaining`);
@@ -80,28 +79,30 @@ export async function loginDSM(state) {
 
     loginPromise = (async () => {
         try {
-            const { account, password } = await getSettings();
-            if (!account || !password) {
-                throw new Error("Missing required settings: Account, or Password.");
+            const settings = await getSettings();
+            
+            // 檢查設定是否完整
+            if (!settings.host || !settings.account || !settings.password) {
+                throw new Error("NAS configuration is incomplete.");
             }
 
-            const result = await dsmRequest(state, "/webapi/auth.cgi", {
-                api: "SYNO.API.Auth", version: 3, method: "login",
-                account, passwd: password, session: "DownloadStation", format: "sid"
-            });
+            // --- 核心改動：改用 loginPure ---
+            const result = await loginPure(settings);
 
-            if (result && result.sid) {
-                state.sid = result.sid;
+            if (result && result.success && result.data?.sid) {
+                state.sid = result.data.sid;
                 state.isLogin = true;
-                lastLoginFailureTime = 0; // 登入成功，重置失敗時間
+                lastLoginFailureTime = 0; 
                 return state.sid;
             } else {
-                throw new Error("Login failed: No SID returned");
+                // 如果 loginPure 已經有幫我們封裝 error.message 就直接用
+                const errorMsg = result.error?.message || "Login failed";
+                throw new Error(errorMsg);
             }
         } catch (err) {
             state.sid = null;
             state.isLogin = false;
-            lastLoginFailureTime = Date.now(); // 紀錄失敗時間點
+            lastLoginFailureTime = Date.now(); 
             throw err;
         } finally {
             loginPromise = null;
