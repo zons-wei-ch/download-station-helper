@@ -134,10 +134,12 @@ body {
     /* -webkit-text-stroke: 0.1px #ddd; */
 }
 
+.status.wait {
+    color: #cccccc;
+}
 .status.ok {
     color: #599966;
 }
-
 .status.error {
     color: #ff4433;
 }

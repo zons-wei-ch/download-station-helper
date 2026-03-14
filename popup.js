@@ -320,7 +320,7 @@ function wakeBackground(retries = 5) {
 }
 
 async function initPopupWithRetry(retries = 3) {
-    statusEl.className = 'status error';
+    statusEl.className = 'status wait';
     statusEl.textContent = 'Waking background...'; //
     stateEl.src = 'icons/wait.png'; //
 
@@ -343,11 +343,13 @@ async function initPopupWithRetry(retries = 3) {
             return;
         }
 
+        statusEl.className = 'status error';
         statusEl.textContent = 'DSM Offline...'; //
         stateEl.src = 'icons/disconnected.png'; //
     } catch (error) {
         // 處理 Promise reject 的錯誤
         if (error.message.includes("Please wait")) {
+            statusEl.className = 'status wait';
             statusEl.textContent = error.message;
             stateEl.src = 'icons/wait.png';
             setTimeout(() => initPopupWithRetry(0), 2000);
@@ -358,7 +360,7 @@ async function initPopupWithRetry(retries = 3) {
             setTimeout(() => initPopupWithRetry(retries - 1), 2000); //
             return;
         }
-
+        statusEl.className = 'status error';
         statusEl.textContent = 'Background not responding'; //
         stateEl.src = 'icons/disconnected.png'; //
     }
