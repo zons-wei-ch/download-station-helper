@@ -1,10 +1,13 @@
-const isDarkMode =
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const isDarkMode = (typeof window !== 'undefined' && window.matchMedia) 
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches 
+    : false;
 
 /**
  * Show confirm modal.
  */
 export async function showConfirm(title, text, type = 'question') {
+    if (typeof Swal === 'undefined') return false; // Service Worker 環境不執行
+
     return Swal.fire({
         title,
         text,
@@ -23,6 +26,8 @@ export async function showConfirm(title, text, type = 'question') {
  * Show toast notification.
  */
 export function showNotify(title, icon = 'success', pos = 'top-end', time = 1500) {
+    if (typeof Swal === 'undefined') return; // Service Worker 環境不執行
+
     const toast =
         typeof Swal !== 'undefined'
             ? Swal.mixin({
@@ -48,6 +53,8 @@ export function showNotify(title, icon = 'success', pos = 'top-end', time = 1500
  * Show error modal.
  */
 export function showError(title, message) {
+    if (typeof Swal === 'undefined') return; // Service Worker 環境不執行
+
     Swal.fire({
         icon: 'error',
         background: isDarkMode ? '#444' : '#ddd',
