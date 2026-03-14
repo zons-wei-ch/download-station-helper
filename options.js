@@ -53,8 +53,12 @@ testBtn.onclick = async () => {
         testBtn.textContent = "Test Connection";
 
         if (response && response.success) {
-            UTIL.showNotify("Login Successful !", "success", "top", 2000);
-            chrome.storage.sync.set({host, account, password});
+            chrome.storage.sync.set(
+                {host, account, password},
+                () => {
+                    UTIL.showNotify("Login Successful !", "success", "top", 2000);
+                }
+            );
         } else {
             if (response.error) {
                 if (response.error.message)
