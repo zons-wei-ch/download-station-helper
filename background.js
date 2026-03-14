@@ -96,13 +96,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         (async () => {
             try {
                 const result = await DSM_API.loginPure(msg.data);
-                
+
                 if (result.success)
                     sendResponse({ success: true });
                 else
-                    sendResponse({ success: false, error: result.error.code });
+                    sendResponse({ success: false, error: result.error });
             } catch (error) {
-                sendResponse({ success: false, error: error.message });
+                sendResponse({ success: false, error: error });
             }
         })();
         return true;

@@ -1,5 +1,3 @@
-import * as UTIL from './util.js';
-
 let loginPromise = null; // 登入鎖
 let lastLoginFailureTime = 0; // 記錄最後一次登入失敗的時間
 
@@ -58,7 +56,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
                 await loginDSM(state);
                 return dsmRequest(state, path, params, method);
             }
-            const errorDesc = UTIL.genErrorDesc(errorCode);
+            const errorDesc = genErrorDesc(errorCode);
             throw new Error(`API Error. Code: ${errorCode} Desc: ${errorDesc}`);
         }
         return data.data || data;
@@ -129,13 +127,63 @@ export async function loginPure(data) {
     const timer = setTimeout(() => controller.abort(), 10000);
 
     try {
-        const res = await fetch(url, { signal: controller.signal, credentials: "include" });
-        return await res.json();
+        const fetchRes = await fetch(url, { signal: controller.signal, credentials: "include" });
+        const res = await fetchRes.json(); // 這裡必須加 await
+        if (!res.success) {
+            const errorCode = res.error?.code;
+            // 將錯誤代碼轉換為人類可讀訊息，補至 res 物件中
+            res.error.message = genErrorDesc(errorCode);
+        }
+        return res;
     } catch (err) {
         throw new Error(err.name === 'AbortError' ? "Timeout" : `Network: ${err.message}`);
     } finally {
         clearTimeout(timer);
     }
+}
+
+export function genErrorDesc(code) {
+    let errorDesc = "Unknown error";
+    
+    switch (code) {
+        // --- 通用錯誤 (100-107) ---
+        case 100: errorDesc = "Unknown error."; break;
+        case 101: errorDesc = "Invalid parameters."; break;
+        case 102: errorDesc = "API does not exist."; break;
+        case 103: errorDesc = "Method does not exist."; break;
+        case 104: errorDesc = "Version not supported."; break;
+        case 105: errorDesc = "Insufficient privilege."; break;
+        case 106: errorDesc = "Session time out."; break;
+        case 107: errorDesc = "Session interrupted."; break;
+
+        // --- 登入驗證相關 (400-408) ---
+        case 400: errorDesc = "Incorrect account or password."; break;
+        case 401: errorDesc = "Guest account disabled."; break;
+        case 402: errorDesc = "Account disabled."; break;
+        case 403: errorDesc = "Invalid password."; break;
+        case 404: errorDesc = "Permission denied."; break;
+        case 405: errorDesc = "2-step verification needed."; break;
+        case 406: errorDesc = "2-step verification failed."; break;
+        case 407: errorDesc = "App portal: permission denied."; break;
+
+        // --- Download Station 任務操作特定錯誤 (400-500+) ---
+        // 注意：Download Station 的 400 與 Auth 的 400 定義可能不同，
+        // 但在通用封裝中通常依據 API 類別區分
+        case 408: errorDesc = "Invalid task ID."; break;
+        case 409: errorDesc = "Invalid task action."; break;
+        case 410: errorDesc = "No default destination folder."; break;
+        
+        // --- 下載任務新增錯誤 (常見於 createTask) ---
+        case 501: errorDesc = "Max number of tasks reached."; break;
+        case 502: errorDesc = "Destination denied."; break;
+        case 503: errorDesc = "Destination is not a directory."; break;
+        case 504: errorDesc = "Destination does not exist."; break;
+        case 505: errorDesc = "Invalid download link."; break;
+        case 506: errorDesc = "Invalid File Hosting information."; break;
+        case 507: errorDesc = "File already exists."; break;
+    }
+
+    return errorDesc;
 }
 
 // 任務相關 API (現在變得非常精簡)

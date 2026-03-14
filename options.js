@@ -57,7 +57,7 @@ testBtn.onclick = async () => {
             // 成功後，你可以選擇自動幫使用者按儲存，或讓使用者手動按
         } else {
             if (response.error) {
-                let errorMsg = `API Error -\nCode: ${response.error}\nDesc: ${UTIL.genErrorDesc(response.error)}`;
+                let errorMsg = `API Error -\nCode: ${response.error.code}\nDesc: ${response.error.message}`;
                 UTIL.showNotify(errorMsg, "error", "top", 6000);
             }
             else
