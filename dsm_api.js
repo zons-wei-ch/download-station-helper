@@ -144,7 +144,7 @@ export async function loginPure(data) {
 }
 
 export function genErrorDesc(code) {
-    let errorDesc = "Unknown error";
+    let errorDesc = `Unknown error - ${code}`;
     
     switch (code) {
         // --- 通用錯誤 (100-107) ---
