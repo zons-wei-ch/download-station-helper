@@ -4,7 +4,13 @@ let lastLoginFailureTime = 0; // 記錄最後一次登入失敗的時間
 // 基礎設定讀取
 export const getSettings = () => 
     new Promise(resolve => chrome.storage.sync.get({
-        host: "", account: "", password: "", refreshInterval: 3000, enableNotifyForSeeding: false, enableNotifyForFinished: false
+        host: "",
+        account: "",
+        password: "",
+        refreshInterval: 3000,
+        enableNotifyForSeeding: false,
+        enableNotifyForFinished: false,
+        enableNotifyForError: false
     }, resolve));
 
 // 內部通用請求封裝 (核心精簡點)

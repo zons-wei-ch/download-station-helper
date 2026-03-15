@@ -141,7 +141,7 @@ body {
     color: #599966;
 }
 .status.error {
-    color: #ff4433;
+    color: #ff8888;
 }
 
 .download_speed, .upload_speed { 
