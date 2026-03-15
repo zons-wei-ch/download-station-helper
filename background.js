@@ -80,56 +80,44 @@ async function refreshTasks() {
 
 // 處裡命令
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.action === "ping") {
-        sendResponse({ alive: true });
-        refreshTasks();
-    } 
-    else if (msg.action === "login") {
-        (async () => {
-            try {
-                const result = await DSM_API.loginPure(msg.data);
-
-                if (result.success)
-                    sendResponse({ success: true });
-                else
-                    sendResponse({ success: false, error: result.error });
-            } catch (error) {
-                sendResponse({ success: false, error: error.message });
-            }
-        })();
-        return true;
-    }
-    else if (msg.action === 'getLatestTasks') {
-        DSM_API.getTasks(state)
-            .then(tasks => {
-                state.latestTasks = tasks; //
-                sendResponse({ success: true, tasks }); //
-            })
-            .catch(err => {
-                // 將冷卻中或連線失敗的錯誤傳回給 popup
-                sendResponse({ success: false, error: err.message });
-            });
-        return true; // 保持異步通道開啟
-    }
-    else if (msg.action === "startTask") {
-        DSM_API.setTaskStatus(state, msg.taskId, "resume")
-            .then(() => { refreshTasks(); sendResponse({ success: true }); })
-            .catch(err => sendResponse({ success: false, error: err.message }));
-    }
-    else if (msg.action === "pauseTask") {
-        DSM_API.setTaskStatus(state, msg.taskId, "pause")
-            .then(() => { refreshTasks(); sendResponse({ success: true }); })
-            .catch(err => sendResponse({ success: false, error: err.message }));
-    }
-    else if (msg.action === "deleteTask") {
-        DSM_API.deleteTask(state, msg.taskId, msg.deleteFile)
-            .then(() => { refreshTasks(); sendResponse({ success: true }); })
-            .catch(err => sendResponse({ success: false, error: err.message }));
-    }
-    else if (msg.action === "createTask") {
-        DSM_API.createTask(state, msg.url)
-            .then(() => { refreshTasks(); sendResponse({ success: true }); })
-            .catch(err => sendResponse({ success: false, error: err.message }));
+    switch (msg.action) {
+        case "ping":
+            sendResponse({ alive: true });
+            refreshTasks();
+            break;
+        case "login":
+            DSM_API.loginPure(msg.data)
+                .then(result => { sendResponse(result.success ? { success: true } : { success: false, error: result.error }); })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
+        case "getLatestTasks":
+            DSM_API.getTasks(state)
+                .then(tasks => {
+                    state.latestTasks = tasks;
+                    sendResponse({ success: true, tasks });
+                })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
+        case "startTask":
+            DSM_API.setTaskStatus(state, msg.taskId, "resume")
+                .then(() => { refreshTasks(); sendResponse({ success: true }); })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
+        case "pauseTask":
+            DSM_API.setTaskStatus(state, msg.taskId, "pause")
+                .then(() => { refreshTasks(); sendResponse({ success: true }); })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
+        case "deleteTask":
+            DSM_API.deleteTask(state, msg.taskId, msg.deleteFile)
+                .then(() => { refreshTasks(); sendResponse({ success: true }); })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
+        case "createTask":
+            DSM_API.createTask(state, msg.url)
+                .then(() => { refreshTasks(); sendResponse({ success: true }); })
+                .catch(err => sendResponse({ success: false, error: err.message }));
+            break;
     }
     return true;
 });
@@ -150,7 +138,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 
         try {
             // 2. 執行加入任務
-            const result = await DSM_API.createTask(state, downloadUrl);
+            await DSM_API.createTask(state, downloadUrl);
             
             // 3. 成功：通知 content.js 顯示成功
             chrome.tabs.sendMessage(tab.id, { 
