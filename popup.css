@@ -16,7 +16,7 @@ body {
     display: flex;
     align-items: center;          /* 垂直置中 */
     justify-content: space-between; /* 左右分開 */
-    padding: 8px 12px;
+    padding: 4px 16px 4px 0px;
     background-color: #ededed;
     border-bottom: 1px solid #aaaaaa;
 }
@@ -24,7 +24,7 @@ body {
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px; /* 按鈕之間的間距 */
+    gap: 16px; /* 按鈕之間的間距 */
 }
 
 .header-actions img {
@@ -37,19 +37,14 @@ body {
 }
 
 /* 標題 */
-.header h1 {
-    font-size: 20px;
-    font-weight: bold;
+.header img {
     margin: 0;
-    color: #444;
-    opacity: 0.8;
-    text-shadow: 4px 4px 4px #888;
-    transition: all 0.4s;
+    opacity: 0.6;
+    transition: all 0.2s;
 }
 
-.header h1:hover {
+.header img:hover {
     opacity: 1;
-    text-shadow: 5px 5px 5px #444
 }
 
 /* 設定圖示 */
@@ -57,7 +52,7 @@ body {
     width: 24px;
     height: 24px;
     cursor: pointer;
-    opacity: 0.5;
+    opacity: 0.6;
     filter: drop-shadow(0.8px 0.8px 0.8px #888);
     transition: all 0.4s;
 }
