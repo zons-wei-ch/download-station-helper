@@ -21,14 +21,32 @@ function updateBadge(count) {
 }
 
 // 顯示通知
-function showCompletionNotification(taskTitle, state) {
+function createChromeNotification(taskTitle, state) {
     chrome.notifications.create({
         type: 'basic',
-        iconUrl: 'icons/download_48.png', // 確保路徑正確
+        iconUrl: 'icons/download_48.png',
         title: 'DSM Task',
         message: `${state} : ${taskTitle}`,
         priority: 2
     });
+}
+
+// 檢查任務狀態通知
+function checkTaskNotifications(newTasks, oldTasks, settings) {
+    const check = (enabled, status, label) => {
+        if (!enabled) return;
+        newTasks.forEach(task => {
+            const preTask = oldTasks.find(t => t.id === task.id);
+            
+            if (task.status === status && preTask && preTask.status !== status) {
+                createChromeNotification(task.title, label);
+            }
+        });
+    };
+
+    check(settings.enableNotifyForSeeding, 'seeding', 'Seeding');
+    check(settings.enableNotifyForFinished, 'finished', 'Finished');
+    check(settings.enableNotifyForError, 'error', 'Error');
 }
 
 // 刷新任務邏輯
@@ -37,33 +55,7 @@ async function refreshTasks() {
         const tasks = await DSM_API.getTasks(state);
         const settings = await DSM_API.getSettings();
         // 檢查任務狀態是否有變化
-        if (settings.enableNotifyForSeeding) {
-            tasks.forEach(task => {
-                const preTask = state.latestTasks.find(t => t.id === task.id);
-                
-                if (task.status === 'seeding' && preTask && preTask.status !== 'seeding') {
-                    showCompletionNotification(task.title, "Seeding");
-                }
-            });
-        }
-        if (settings.enableNotifyForFinished) {
-            tasks.forEach(task => {
-                const preTask = state.latestTasks.find(t => t.id === task.id);
-                
-                if (task.status === 'finished' && preTask && preTask.status !== 'finished') {
-                    showCompletionNotification(task.title, "Finished");
-                }
-            });
-        }
-        if (settings.enableNotifyForError) {
-            tasks.forEach(task => {
-                const preTask = state.latestTasks.find(t => t.id === task.id);
-                
-                if (task.status === 'error' && preTask && preTask.status !== 'error') {
-                    showCompletionNotification(task.title, "Error");
-                }
-            });
-        }
+        checkTaskNotifications(tasks, state.latestTasks, settings);
 
         state.latestTasks = tasks;
         updateBadge(tasks.length);
@@ -251,4 +243,3 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
 });
 
 globalThis.addEventListener('online', refreshTasks);
-
