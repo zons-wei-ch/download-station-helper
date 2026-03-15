@@ -91,7 +91,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             .catch(err => sendResponse({ success: false, error: err.message }));
         break;
     case "latestTasks":
-        sendResponse({ success: true, tasks: state.latestTasks });
+        if (state.isLogin)
+            sendResponse({ success: state.isLogin, tasks: state.latestTasks });
+        else
+            DSM_API.getTasks(state)
+                .then(tasks => {
+                    state.latestTasks = tasks;
+                    sendResponse({ success: true, tasks });
+                })
+                .catch(err => sendResponse({ success: false, error: err.message }));
         break;
     case "nowTasks":
         DSM_API.getTasks(state)
