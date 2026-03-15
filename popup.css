@@ -7,7 +7,7 @@ body {
     display: flex;
     flex-direction: column;     /* 垂直排列元件 */
     overflow: hidden;           /* 防止最外層出現 scroll bar */
-    font-family: "Microsoft JhengHei", "Heiti TC", "serif", "Arial";
+    font-family: "Microsoft JhengHei", "Microsoft YaHei", "San Francisco", "Lucida Grande";
     user-select: none;          /* 不可選取文字 */
 }
 
