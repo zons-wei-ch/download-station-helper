@@ -81,43 +81,46 @@ async function refreshTasks() {
 // 處裡命令
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     switch (msg.action) {
-        case "ping":
-            sendResponse({ alive: true });
-            refreshTasks();
-            break;
-        case "login":
-            DSM_API.loginPure(msg.data)
-                .then(result => { sendResponse(result.success ? { success: true } : { success: false, error: result.error }); })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
-        case "getLatestTasks":
-            DSM_API.getTasks(state)
-                .then(tasks => {
-                    state.latestTasks = tasks;
-                    sendResponse({ success: true, tasks });
-                })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
-        case "startTask":
-            DSM_API.setTaskStatus(state, msg.taskId, "resume")
-                .then(() => { refreshTasks(); sendResponse({ success: true }); })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
-        case "pauseTask":
-            DSM_API.setTaskStatus(state, msg.taskId, "pause")
-                .then(() => { refreshTasks(); sendResponse({ success: true }); })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
-        case "deleteTask":
-            DSM_API.deleteTask(state, msg.taskId, msg.deleteFile)
-                .then(() => { refreshTasks(); sendResponse({ success: true }); })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
-        case "createTask":
-            DSM_API.createTask(state, msg.url)
-                .then(() => { refreshTasks(); sendResponse({ success: true }); })
-                .catch(err => sendResponse({ success: false, error: err.message }));
-            break;
+    case "ping":
+        sendResponse({ success: true });
+        refreshTasks();
+        break;
+    case "login":
+        DSM_API.loginPure(msg.data)
+            .then(result => { sendResponse(result.success ? { success: true } : { success: false, error: result.error }); })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
+    case "latestTasks":
+        sendResponse({ success: true, tasks: state.latestTasks });
+        break;
+    case "nowTasks":
+        DSM_API.getTasks(state)
+            .then(tasks => {
+                state.latestTasks = tasks;
+                sendResponse({ success: true, tasks });
+            })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
+    case "startTask":
+        DSM_API.setTaskStatus(state, msg.taskId, "resume")
+            .then(() => { refreshTasks(); sendResponse({ success: true }); })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
+    case "pauseTask":
+        DSM_API.setTaskStatus(state, msg.taskId, "pause")
+            .then(() => { refreshTasks(); sendResponse({ success: true }); })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
+    case "deleteTask":
+        DSM_API.deleteTask(state, msg.taskId, msg.deleteFile)
+            .then(() => { refreshTasks(); sendResponse({ success: true }); })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
+    case "createTask":
+        DSM_API.createTask(state, msg.url)
+            .then(() => { refreshTasks(); sendResponse({ success: true }); })
+            .catch(err => sendResponse({ success: false, error: err.message }));
+        break;
     }
     return true;
 });

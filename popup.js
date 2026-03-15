@@ -40,7 +40,7 @@ function bindPurgeAction() {
     if (!purgeBtn) return;
 
     purgeBtn.addEventListener('click', () => {
-        chrome.runtime.sendMessage({ action: 'getLatestTasks' }, async res => {
+        chrome.runtime.sendMessage({ action: "nowTasks" }, async res => {
             if (!res?.tasks) return;
 
             const finishedTasks = res.tasks.filter(task => task.status === 'finished');
@@ -301,8 +301,8 @@ function updateStatus(tasks) {
 
 function wakeBackground(retries = 5) {
     return new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ action: 'ping' }, res => {
-            if (res?.alive) {
+        chrome.runtime.sendMessage({ action: "ping" }, res => {
+            if (res?.success) {
                 resolve(true);
                 return;
             }
@@ -326,7 +326,7 @@ async function initPopupWithRetry(retries = 3) {
 
     try {
         await wakeBackground(); //
-        const res = await chrome.runtime.sendMessage({ action: 'getLatestTasks' }); //
+        const res = await chrome.runtime.sendMessage({ action: "latestTasks" }); //
 
         if (res?.success) {
             updateStatus(res.tasks); //
@@ -367,11 +367,13 @@ async function initPopupWithRetry(retries = 3) {
 }
 
 chrome.runtime.onMessage.addListener(msg => {
-    if (msg.action !== 'tasksUpdated') return;
-
-    if (msg.success) {
+    if (!msg.success) return;
+    
+    switch (msg.action) {
+    case "tasksUpdated":
         updateStatus(msg.tasks);
         renderTasks(msg.tasks);
+        break;
     }
 });
 
