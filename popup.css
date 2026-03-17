@@ -119,6 +119,17 @@ body {
     background-color: #2d2d2d;
 }
 
+.statusBar img {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 2px;
+    width: 32px;
+    height: 32px;
+}
+
 .status {
     flex: 1;
     padding: 0px 12px;
@@ -155,12 +166,7 @@ body {
     color: #ffffff;
 }
 
-#state, #download, #upload {
-    padding-top: 4px;
-    padding-left: 2px;
-    width: 32px;
-    height: 32px;
-}
+
 
 /* ===== 任務列表 ===== */
 .task-list {
