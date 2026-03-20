@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "download station helper",
-    "version": "1.2.6",
-    "description": "handle tasks for download station",
+    "name": "download station helper [Synology]",
+    "version": "1.2.7",
+    "description": "handle and view tasks for Synology Download Station",
     "permissions": [
         "notifications",
         "contextMenus",

@@ -367,7 +367,13 @@ async function initPopupWithRetry(retries = 3) {
 }
 
 chrome.runtime.onMessage.addListener(msg => {
-    if (!msg.success) return;
+    if (!msg.success) {
+        // 顯示錯誤狀態到 statusBar
+        statusEl.className = 'status error';
+        statusEl.textContent = msg.error ? msg.error : 'Refresh Failed.';
+        stateEl.src = 'icons/disconnected.png';
+        return;
+    }
     
     switch (msg.action) {
     case "tasksUpdated":

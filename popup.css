@@ -148,6 +148,13 @@ body {
 }
 .status.error {
     color: #ff8888;
+    animation: flash 3s infinite;
+}
+
+@keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
 
 .download_speed, .upload_speed { 
