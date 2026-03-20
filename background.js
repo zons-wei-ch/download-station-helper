@@ -1,5 +1,7 @@
 import * as DSM_API from './dsm_api.js';
 
+let heartbeatInterval = null;
+
 const state = {
     sid: null,
     isLogin: false,
@@ -84,6 +86,24 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case "ping":
         sendResponse({ success: true });
         refreshTasks();
+
+        DSM_API.getSettings()
+            .then(settings =>{
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                heartbeatInterval = setInterval(() => {
+                    refreshTasks();
+                }, settings.refreshInterval);
+            })
+            .catch(
+                clearInterval(heartbeatInterval)
+            );
+        break;
+    case "un-ping":
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+        sendResponse({ success: true });
         break;
     case "login":
         DSM_API.loginPure(msg.data)
@@ -207,14 +227,14 @@ function createContextMenu() {
 }
 
 async function setupAlarm() {
-    const settings = await DSM_API.getSettings();
-    const intervalInMinutes = (settings.refreshInterval / 1000) / 60;
+    // const settings = await DSM_API.getSettings();
+    // const intervalInMinutes = (settings.refreshInterval / 1000) / 60;
     
     // Chrome Alarm 最小單位是 1 分鐘 (開發模式可較短，但建議至少 1 分鐘以維持穩定)
     // 如果你需要更短的頻率，請參考下方的「心跳」技巧
     chrome.alarms.clearAll();
     chrome.alarms.create("refreshTasks", {
-        periodInMinutes: Math.max(intervalInMinutes, 0.015)
+        periodInMinutes: 1
     });
 }
 

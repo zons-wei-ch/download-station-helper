@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initPopupWithRetry();
 });
 
+window.addEventListener('unload', () => {
+    chrome.runtime.sendMessage({ action: 'un-ping' });
+});
+
 function bindOptionsAction() {
     const openOptionsBtn = document.getElementById('openOptions');
     if (!openOptionsBtn) return;
