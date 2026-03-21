@@ -143,7 +143,7 @@ chrome.storage.sync.get(
         passwordInput.value = data.password;
 
         // 檢查選項中是否有存的值
-        const allowed = [3000, 4000, 5000, 6000, 10000, 15000, 20000, 30000, 45000, 60000];
+        const allowed = [5000, 10000, 15000, 20000, 25000, 30000, 45000, 60000];
         if (allowed.includes(data.refreshInterval)) {
             refreshSelect.value = data.refreshInterval;
         } else {
