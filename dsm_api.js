@@ -7,7 +7,7 @@ export const getSettings = () =>
         host: "",
         account: "",
         password: "",
-        refreshInterval: 3000,
+        refreshInterval: 5000,
         enableNotifyForSeeding: false,
         enableNotifyForFinished: false,
         enableNotifyForError: false

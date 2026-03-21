@@ -129,7 +129,7 @@ chrome.storage.sync.get(
         host: "",
         account: "",
         password: "",
-        refreshInterval: 3000, // 預設 3 秒
+        refreshInterval: 5000, // 預設 5 秒
         enableSort: false,
         sortField: "time",
         sortOrder: "desc",
