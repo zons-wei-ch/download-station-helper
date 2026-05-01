@@ -1,10 +1,12 @@
 ﻿import * as UTIL from './util.js';
 
-const statusEl = document.getElementById('status');
-const stateEl = document.getElementById('state');
-const downloadEl = document.getElementById('download_speed');
-const uploadEl = document.getElementById('upload_speed');
-const taskListEl = document.getElementById('taskList');
+const $ = window.jQuery;
+
+const $statusEl = $('#status');
+const $stateEl = $('#state');
+const $downloadEl = $('#download_speed');
+const $uploadEl = $('#upload_speed');
+const $taskListEl = $('#taskList');
 
 const containerCache = {};
 
@@ -22,28 +24,28 @@ const ICON_24_STYLE = {
     cursor: 'pointer'
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+$(document).ready(() => {
     bindOptionsAction();
     bindPurgeAction();
     bindAddTaskActions();
     initPopupWithRetry();
 });
 
-window.addEventListener('unload', () => {
+$(window).on('unload', () => {
     chrome.runtime.sendMessage({ action: 'un-ping' });
 });
 
 function bindOptionsAction() {
-    const openOptionsBtn = document.getElementById('openOptions');
-    if (!openOptionsBtn) return;
-    openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
+    const $openOptionsBtn = $('#openOptions');
+    if (!$openOptionsBtn.length) return;
+    $openOptionsBtn.on('click', () => chrome.runtime.openOptionsPage());
 }
 
 function bindPurgeAction() {
-    const purgeBtn = document.getElementById('purgeFinished');
-    if (!purgeBtn) return;
+    const $purgeBtn = $('#purgeFinished');
+    if (!$purgeBtn.length) return;
 
-    purgeBtn.addEventListener('click', () => {
+    $purgeBtn.on('click', () => {
         chrome.runtime.sendMessage({ action: "nowTasks" }, async res => {
             if (!res?.tasks) return;
 
@@ -69,43 +71,43 @@ function bindPurgeAction() {
 }
 
 function bindAddTaskActions() {
-    const addTaskBtn = document.getElementById('addTask');
-    const addTaskContainer = document.getElementById('addTaskContainer');
-    const applyTaskBtn = document.getElementById('applyTask');
-    const taskUrlInput = document.getElementById('taskUrl');
+    const $addTaskBtn = $('#addTask');
+    const $addTaskContainer = $('#addTaskContainer');
+    const $applyTaskBtn = $('#applyTask');
+    const $taskUrlInput = $('#taskUrl');
 
-    if (!addTaskBtn || !addTaskContainer || !applyTaskBtn || !taskUrlInput) return;
+    if (!$addTaskBtn.length || !$addTaskContainer.length || !$applyTaskBtn.length || !$taskUrlInput.length) return;
 
-    addTaskBtn.addEventListener('click', () => {
-        addTaskContainer.classList.toggle('show');
-        if (addTaskContainer.classList.contains('show')) {
-            setTimeout(() => taskUrlInput.focus(), 200);
+    $addTaskBtn.on('click', () => {
+        $addTaskContainer.toggleClass('show');
+        if ($addTaskContainer.hasClass('show')) {
+            setTimeout(() => $taskUrlInput.trigger('focus'), 200);
         }
     });
 
-    applyTaskBtn.addEventListener('click', () => {
-        const url = taskUrlInput.value.trim();
+    $applyTaskBtn.on('click', () => {
+        const url = $taskUrlInput.val().trim();
         if (!url) {
-            addTaskContainer.classList.toggle('show');
+            $addTaskContainer.toggleClass('show');
             return;
         }
 
-        applyTaskBtn.disabled = true;
+        $applyTaskBtn.prop('disabled', true);
         chrome.runtime.sendMessage({ action: 'createTask', url }, res => {
-            applyTaskBtn.disabled = false;
+            $applyTaskBtn.prop('disabled', false);
             if (!res?.success) {
                 UTIL.showNotify('Failed to add!', 'error');
                 return;
             }
 
-            addTaskContainer.classList.toggle('show');
-            taskUrlInput.value = '';
+            $addTaskContainer.toggleClass('show');
+            $taskUrlInput.val('');
             UTIL.showNotify('Task added!');
         });
     });
 
-    taskUrlInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') applyTaskBtn.click();
+    $taskUrlInput.on('keypress', e => {
+        if (e.key === 'Enter') $applyTaskBtn.trigger('click');
     });
 }
 
@@ -118,19 +120,19 @@ async function renderTasks(tasks) {
         let cache = containerCache[taskKey];
 
         if (!cache) {
-            const container = createTaskEl(task);
-            cache = { container, bar: null };
+            const $container = createTaskEl(task);
+            cache = { $container, bar: null };
             containerCache[taskKey] = cache;
         } else {
-            updateTaskEl(task, cache.container);
+            updateTaskEl(task, cache.$container);
         }
 
-        fragment.appendChild(cache.container);
+        fragment.appendChild(cache.$container[0]);
     });
 
-    taskListEl.classList.add('no-hover');
-    taskListEl.replaceChildren(fragment);
-    requestAnimationFrame(() => taskListEl.classList.remove('no-hover'));
+    $taskListEl.addClass('no-hover');
+    $taskListEl.empty().append(fragment);
+    requestAnimationFrame(() => $taskListEl.removeClass('no-hover'));
 
     const currentIds = new Set(sortedTasks.map(task => String(task.id)));
     Object.keys(containerCache).forEach(id => {
@@ -153,64 +155,63 @@ async function renderTasks(tasks) {
 function createTaskEl(task) {
     const taskId = String(task.id);
 
-    const li = document.createElement('li');
-    li.id = `${taskId}-task`;
-    li.className = 'task';
-    li.setAttribute('data-status', task.status);
+    const $li = $('<li>', {
+        id: `${taskId}-task`,
+        class: 'task'
+    }).attr('data-status', task.status);
 
-    const title = createDiv(`${taskId}-title`, 'task-title', UTIL.getTaskTitle(task));
+    const $title = createDiv(`${taskId}-title`, 'task-title', UTIL.getTaskTitle(task));
 
-    const metaStatusIcon = createIcon('icons/status.png', ICON_18_STYLE);
-    const metaStatus = createDiv(`${taskId}-status`, 'task-meta-text', UTIL.getTaskStatusText(task));
-    const metaProgressIcon = createIcon('icons/progress.png', ICON_18_STYLE);
-    const metaProgressValue = createDiv(
+    const $metaStatusIcon = createIcon('icons/status.png', ICON_18_STYLE);
+    const $metaStatus = createDiv(`${taskId}-status`, 'task-meta-text', UTIL.getTaskStatusText(task));
+    const $metaProgressIcon = createIcon('icons/progress.png', ICON_18_STYLE);
+    const $metaProgressValue = createDiv(
         `${taskId}-progress-value`,
         'task-meta-text',
         UTIL.getTaskProgressText(task)
     );
-    const metaRatioIcon = createIcon('icons/ratio.png', ICON_18_STYLE);
-    const metaRatioValue = createDiv(`${taskId}-ratio`, 'task-meta-text', UTIL.getTaskRatioText(task));
+    const $metaRatioIcon = createIcon('icons/ratio.png', ICON_18_STYLE);
+    const $metaRatioValue = createDiv(`${taskId}-ratio`, 'task-meta-text', UTIL.getTaskRatioText(task));
 
-    const metaTop = createDiv(`${taskId}-meta-top`, 'task-meta');
-    metaTop.append(metaStatusIcon, metaStatus, metaProgressIcon, metaProgressValue, metaRatioIcon, metaRatioValue);
+    const $metaTop = createDiv(`${taskId}-meta-top`, 'task-meta');
+    $metaTop.append($metaStatusIcon, $metaStatus, $metaProgressIcon, $metaProgressValue, $metaRatioIcon, $metaRatioValue);
 
-    const progressContainer = createDiv(`${taskId}-bar`, 'task-progress');
+    const $progressContainer = createDiv(`${taskId}-bar`, 'task-progress');
     
-    const metaSizeIcon = createIcon('icons/storage.png', ICON_18_STYLE);
-    const metaSize = createDiv(`${taskId}-size`, 'task-meta-text', UTIL.formatSize(task.size ?? 0));
-    const metaSpeedIcon = createIcon('icons/speed.png', ICON_18_STYLE);
-    const metaSpeedValue = createDiv(`${taskId}-speed-value`, 'task-meta-text', UTIL.getTaskSpeedText(task));
-    const metaTimeInfo = createDiv(`${taskId}-time-info`, 'task-meta-text', UTIL.getTaskTimeText(task));
+    const $metaSizeIcon = createIcon('icons/storage.png', ICON_18_STYLE);
+    const $metaSize = createDiv(`${taskId}-size`, 'task-meta-text', UTIL.formatSize(task.size ?? 0));
+    const $metaSpeedIcon = createIcon('icons/speed.png', ICON_18_STYLE);
+    const $metaSpeedValue = createDiv(`${taskId}-speed-value`, 'task-meta-text', UTIL.getTaskSpeedText(task));
+    const $metaTimeInfo = createDiv(`${taskId}-time-info`, 'task-meta-text', UTIL.getTaskTimeText(task));
 
-    const metaBottom = createDiv(`${taskId}-meta-bottom`, 'task-meta');
-    metaBottom.append(metaSizeIcon, metaSize, metaSpeedIcon, metaSpeedValue, metaTimeInfo);
+    const $metaBottom = createDiv(`${taskId}-meta-bottom`, 'task-meta');
+    $metaBottom.append($metaSizeIcon, $metaSize, $metaSpeedIcon, $metaSpeedValue, $metaTimeInfo);
 
-    const actions = document.createElement('div');
-    actions.className = 'task-actions';
+    const $actions = $('<div>', { class: 'task-actions' });
 
-    const startBtn = createActionButton('icons/start.png', 'Resume Task', 'task-action-btn btn-start');
-    startBtn.onclick = e => {
+    const $startBtn = createActionButton('icons/start.png', 'Resume Task', 'task-action-btn btn-start');
+    $startBtn.on('click', e => {
         e.stopPropagation();
-        li.setAttribute('data-status', 'unknown');
-        startBtn.classList.add('hidden');
-        pauseBtn.classList.add('hidden');
+        $li.attr('data-status', 'unknown');
+        $startBtn.addClass('hidden');
+        $pauseBtn.addClass('hidden');
         chrome.runtime.sendMessage({ action: 'startTask', taskId: task.id });
-    };
+    });
 
-    const pauseBtn = createActionButton('icons/pause.png', 'Pause Task', 'task-action-btn btn-pause');
-    pauseBtn.onclick = e => {
+    const $pauseBtn = createActionButton('icons/pause.png', 'Pause Task', 'task-action-btn btn-pause');
+    $pauseBtn.on('click', e => {
         e.stopPropagation();
-        li.setAttribute('data-status', 'unknown');
-        startBtn.classList.add('hidden');
-        pauseBtn.classList.add('hidden');
+        $li.attr('data-status', 'unknown');
+        $startBtn.addClass('hidden');
+        $pauseBtn.addClass('hidden');
         chrome.runtime.sendMessage({ action: 'pauseTask', taskId: task.id });
-    };
+    });
 
-    const delBtn = createActionButton('icons/delete.png', 'Delete Task', 'task-delete-btn');
-    delBtn.onclick = async e => {
+    const $delBtn = createActionButton('icons/delete.png', 'Delete Task', 'task-delete-btn');
+    $delBtn.on('click', async e => {
         e.stopPropagation();
 
-        const taskTitle = li.querySelector(`#${taskId}-title`)?.textContent || UTIL.getTaskTitle(task);
+        const taskTitle = $li.find(`#${taskId}-title`).text() || UTIL.getTaskTitle(task);
         const confirmed = await UTIL.showConfirm(
             'Delete Task?',
             `Are you sure to delete: "${taskTitle}"?`
@@ -221,56 +222,49 @@ function createTaskEl(task) {
         chrome.runtime.sendMessage({ action: 'deleteTask', taskId: task.id }, res => {
             if (res?.success) {
                 UTIL.showNotify('Deleted');
-                li.remove();
+                $li.remove();
                 return;
             }
 
             UTIL.showError('Delete Failed', res?.error);
         });
-    };
+    });
 
-    actions.append(startBtn, pauseBtn, delBtn);
-    toggleButtons(task.status, startBtn, pauseBtn);
+    $actions.append($startBtn, $pauseBtn, $delBtn);
+    toggleButtons(task.status, $startBtn, $pauseBtn);
 
-    li.append(title, metaTop, progressContainer, metaBottom, actions);
-    return li;
+    $li.append($title, $metaTop, $progressContainer, $metaBottom, $actions);
+    return $li;
 }
 
-function updateTaskEl(task, li) {
+function updateTaskEl(task, $li) {
     const taskId = String(task.id);
 
-    li.setAttribute('data-status', task.status);
+    $li.attr('data-status', task.status);
 
-    const title = li.querySelector(`#${taskId}-title`);
-    if (title) title.textContent = UTIL.getTaskTitle(task);
+    $li.find(`#${taskId}-title`).text(UTIL.getTaskTitle(task));
 
-    const metaRatioValue = li.querySelector(`#${taskId}-ratio`);
-    if (metaRatioValue) metaRatioValue.textContent = UTIL.getTaskRatioText(task);
+    $li.find(`#${taskId}-ratio`).text(UTIL.getTaskRatioText(task));
 
-    const metaStatus = li.querySelector(`#${taskId}-status`);
-    if (metaStatus) metaStatus.textContent = UTIL.getTaskStatusText(task);
+    $li.find(`#${taskId}-status`).text(UTIL.getTaskStatusText(task));
 
-    const metaSize = li.querySelector(`#${taskId}-size`);
-    if (metaSize) metaSize.textContent = UTIL.formatSize(task.size ?? 0);
+    $li.find(`#${taskId}-size`).text(UTIL.formatSize(task.size ?? 0));
 
-    const metaProgressValue = li.querySelector(`#${taskId}-progress-value`);
-    if (metaProgressValue) metaProgressValue.textContent = UTIL.getTaskProgressText(task);
+    $li.find(`#${taskId}-progress-value`).text(UTIL.getTaskProgressText(task));
 
-    const metaSpeedValue = li.querySelector(`#${taskId}-speed-value`);
-    if (metaSpeedValue) metaSpeedValue.textContent = UTIL.getTaskSpeedText(task);
+    $li.find(`#${taskId}-speed-value`).text(UTIL.getTaskSpeedText(task));
 
-    const metaTimeInfo = li.querySelector(`#${taskId}-time-info`);
-    if (metaTimeInfo) metaTimeInfo.textContent = UTIL.getTaskTimeText(task);
+    $li.find(`#${taskId}-time-info`).text(UTIL.getTaskTimeText(task));
 
-    const startBtn = li.querySelector('.btn-start');
-    const pauseBtn = li.querySelector('.btn-pause');
-    if (startBtn && pauseBtn) toggleButtons(task.status, startBtn, pauseBtn);
+    const $startBtn = $li.find('.btn-start');
+    const $pauseBtn = $li.find('.btn-pause');
+    if ($startBtn.length && $pauseBtn.length) toggleButtons(task.status, $startBtn, $pauseBtn);
 }
 
-function toggleButtons(status, startBtn, pauseBtn) {
+function toggleButtons(status, $startBtn, $pauseBtn) {
     const { showStart, showPause } = UTIL.getTaskActionVisibility(status);
-    startBtn.classList.toggle('hidden', !showStart);
-    pauseBtn.classList.toggle('hidden', !showPause);
+    $startBtn.toggleClass('hidden', !showStart);
+    $pauseBtn.toggleClass('hidden', !showPause);
 }
 
 function createBar(task) {
@@ -296,11 +290,11 @@ function updateBar(task, bar) {
 function updateStatus(tasks) {
     const { totalDown, totalUp } = UTIL.calcTotalSpeed(tasks);
 
-    statusEl.textContent = 'DSM Online...';
-    stateEl.src = 'icons/connected.png';
-    downloadEl.textContent = UTIL.formatSpeed(totalDown);
-    uploadEl.textContent = UTIL.formatSpeed(totalUp);
-    statusEl.className = 'status ok';
+    $statusEl.text('DSM Online...');
+    $stateEl.attr('src', 'icons/connected.png');
+    $downloadEl.text(UTIL.formatSpeed(totalDown));
+    $uploadEl.text(UTIL.formatSpeed(totalUp));
+    $statusEl.attr('class', 'status ok');
 }
 
 function wakeBackground(retries = 5) {
@@ -324,9 +318,9 @@ function wakeBackground(retries = 5) {
 }
 
 async function initPopupWithRetry(retries = 3) {
-    statusEl.className = 'status wait';
-    statusEl.textContent = 'Waking background...'; //
-    stateEl.src = 'icons/wait.png'; //
+    $statusEl.attr('class', 'status wait');
+    $statusEl.text('Waking background...'); //
+    $stateEl.attr('src', 'icons/wait.png'); //
 
     try {
         await wakeBackground(); //
@@ -340,22 +334,22 @@ async function initPopupWithRetry(retries = 3) {
 
         // 如果失敗的原因是登入冷卻中
         if (res?.error && res.error.includes("Please wait")) {
-            statusEl.textContent = res.error; // 顯示例如 "Please wait 5s..."
-            stateEl.src = 'icons/wait.png';
+            $statusEl.text(res.error); // 顯示例如 "Please wait 5s..."
+            $stateEl.attr('src', 'icons/wait.png');
             // 可以在 1 秒後自動重試，直到冷卻結束
             setTimeout(() => initPopupWithRetry(0), 1200); 
             return;
         }
 
-        statusEl.className = 'status error';
-        statusEl.textContent = 'DSM Offline...'; //
-        stateEl.src = 'icons/disconnected.png'; //
+        $statusEl.attr('class', 'status error');
+        $statusEl.text('DSM Offline...'); //
+        $stateEl.attr('src', 'icons/disconnected.png'); //
     } catch (error) {
         // 處理 Promise reject 的錯誤
         if (error.message.includes("Please wait")) {
-            statusEl.className = 'status wait';
-            statusEl.textContent = error.message;
-            stateEl.src = 'icons/wait.png';
+            $statusEl.attr('class', 'status wait');
+            $statusEl.text(error.message);
+            $stateEl.attr('src', 'icons/wait.png');
             setTimeout(() => initPopupWithRetry(0), 2000);
             return;
         }
@@ -364,18 +358,18 @@ async function initPopupWithRetry(retries = 3) {
             setTimeout(() => initPopupWithRetry(retries - 1), 2000); //
             return;
         }
-        statusEl.className = 'status error';
-        statusEl.textContent = 'Background not responding'; //
-        stateEl.src = 'icons/disconnected.png'; //
+        $statusEl.attr('class', 'status error');
+        $statusEl.text('Background not responding'); //
+        $stateEl.attr('src', 'icons/disconnected.png'); //
     }
 }
 
 chrome.runtime.onMessage.addListener(msg => {
     if (!msg.success) {
         // 顯示錯誤狀態到 statusBar
-        statusEl.className = 'status error';
-        statusEl.textContent = msg.error ? msg.error : 'Refresh Failed.';
-        stateEl.src = 'icons/disconnected.png';
+        $statusEl.attr('class', 'status error');
+        $statusEl.text(msg.error ? msg.error : 'Refresh Failed.');
+        $stateEl.attr('src', 'icons/disconnected.png');
         return;
     }
     
@@ -388,27 +382,22 @@ chrome.runtime.onMessage.addListener(msg => {
 });
 
 function createDiv(id, className, textContent = '') {
-    const el = document.createElement('div');
-    if (id) el.id = id;
-    if (className) el.className = className;
-    if (textContent !== undefined) el.textContent = textContent;
-    return el;
+    const $el = $('<div>');
+    if (id) $el.attr('id', id);
+    if (className) $el.attr('class', className);
+    if (textContent !== undefined) $el.text(textContent);
+    return $el;
 }
 
 function createIcon(src, style) {
-    const img = document.createElement('img');
-    img.src = src;
-    Object.assign(img.style, style);
-    return img;
+    return $('<img>', { src }).css(style);
 }
 
 function createActionButton(src, title, className) {
-    const button = document.createElement('img');
-    button.src = src;
-    button.alt = title;
-    button.title = title;
-    button.className = className;
-    Object.assign(button.style, ICON_24_STYLE);
-    return button;
+    return $('<img>', {
+        src,
+        alt: title,
+        title,
+        class: className
+    }).css(ICON_24_STYLE);
 }
-

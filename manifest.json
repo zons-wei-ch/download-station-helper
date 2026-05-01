@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "download station helper [Synology]",
-    "version": "1.2.8",
+    "version": "1.3.0",
     "description": "handle and view tasks for Synology Download Station",
     "permissions": [
         "notifications",
@@ -30,14 +30,14 @@
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": ["lib/sweetalert2.all.min.js", "content.js"],
+            "js": ["lib/jquery-4.0.0.min.js", "lib/sweetalert2.all.min.js", "content.js"],
             "run_at": "document_idle"
         }
     ],
     "web_accessible_resources": [
         {
             "matches": ["<all_urls>"],
-            "resources": ["lib/sweetalert2.all.min.js"]
+            "resources": ["lib/jquery-4.0.0.min.js", "lib/sweetalert2.all.min.js"]
         }
     ],
     "options_page": "options.html"
