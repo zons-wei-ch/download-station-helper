@@ -21,9 +21,9 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
     if (!state.sid) {
         try {
             await loginDSM(state);
-        } catch (loginError) {
+        } catch (err) {
             // 登入失敗就直接把錯誤往上拋，不再執行後續的 fetch
-            throw new Error(`Pre-request login failed: ${loginError.message}`);
+            throw new Error(`Login failed: ${err.message}`);
         }
     }
 
@@ -80,7 +80,7 @@ export async function loginDSM(state) {
     const waitTime = 5000; 
     if (now - lastLoginFailureTime < waitTime) {
         const remaining = Math.ceil((waitTime - (now - lastLoginFailureTime)) / 1000);
-        throw new Error(`Login cooling down: ${remaining}s remaining`);
+        throw new Error(`cooling down - ${remaining}s remaining`);
     }
 
     loginPromise = (async () => {

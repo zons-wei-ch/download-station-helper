@@ -93,10 +93,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 heartbeatInterval = setInterval(() => {
                     refreshTasks();
                 }, settings.refreshInterval);
-            })
-            .catch(
-                clearInterval(heartbeatInterval)
-            );
+            }).catch(clearInterval(heartbeatInterval));
         break;
     case "un-ping":
         if (heartbeatInterval) {
@@ -118,16 +115,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 .then(tasks => {
                     state.latestTasks = tasks;
                     sendResponse({ success: true, tasks });
-                })
-                .catch(err => sendResponse({ success: false, error: err.message }));
+                }).catch(err => sendResponse({ success: false, error: err.message }));
         break;
     case "nowTasks":
         DSM_API.getTasks(state)
             .then(tasks => {
                 state.latestTasks = tasks;
                 sendResponse({ success: true, tasks });
-            })
-            .catch(err => sendResponse({ success: false, error: err.message }));
+            }).catch(err => sendResponse({ success: false, error: err.message }));
         break;
     case "startTask":
         DSM_API.setTaskStatus(state, msg.taskId, "resume")
