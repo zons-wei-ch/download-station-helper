@@ -2,6 +2,7 @@ import * as UTIL from './util.js';
 
 const $ = window.jQuery;
 
+const $protocolSelect = $('#protocol');
 const $hostInput = $('#host');
 const $accountInput = $('#account');
 const $passwordInput = $('#password');
@@ -17,6 +18,25 @@ const $enableNotifyForSeedingCheckbox = $('#enableNotifyForSeeding');
 const $enableNotifyForFinishedCheckbox = $('#enableNotifyForFinished');
 const $enableNotifyForErrorCheckbox = $('#enableNotifyForError');
 
+function splitHostProtocol(host = '') {
+    const match = host.match(/^(https?):\/\/(.+)$/i);
+    if (!match) return { protocol: 'http', host };
+
+    return {
+        protocol: match[1].toLowerCase(),
+        host: match[2]
+    };
+}
+
+function getHostWithProtocol() {
+    const protocol = $protocolSelect.val();
+    const host = $hostInput.val().trim().replace(/^https?:\/\//i, '');
+
+    if (!host) return '';
+
+    return `${protocol}://${host}`;
+}
+
 $togglePasswordBtn.on('click', e => {
     e.preventDefault();
 
@@ -31,7 +51,7 @@ $togglePasswordBtn.on('click', e => {
 });
 
 $testBtn.on('click', async () => {
-    const host = $hostInput.val().trim();
+    const host = getHostWithProtocol();
     const account = $accountInput.val().trim();
     const password = $passwordInput.val();
 
@@ -84,7 +104,7 @@ function updateSortOptionsState() {
 $enableSortCheckbox.on('change', updateSortOptionsState);
 
 $saveBtn.on('click', () => {
-    const host = $hostInput.val().trim();
+    const host = getHostWithProtocol();
     const account = $accountInput.val().trim();
     const password = $passwordInput.val();
     const refreshInterval = parseInt($refreshSelect.val(), 10);
@@ -131,7 +151,10 @@ chrome.storage.sync.get(
         enableNotifyForError: false
     },
     data => {
-        $hostInput.val(data.host);
+        const { protocol, host } = splitHostProtocol(data.host);
+
+        $protocolSelect.val(protocol);
+        $hostInput.val(host);
         $accountInput.val(data.account);
         $passwordInput.val(data.password);
 

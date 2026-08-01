@@ -134,6 +134,22 @@ input:focus, select:focus {
 }
 
 /* 密碼欄位特別處理 */
+.host-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.host-input-row select {
+    flex: 0 0 96px;
+    width: 96px;
+}
+
+.host-input-row input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .password-wrapper {
     position: relative;
     display: flex;

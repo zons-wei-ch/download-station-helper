@@ -14,6 +14,23 @@ export const getSettings = () =>
     }, resolve));
 
 // 內部通用請求封裝 (核心精簡點)
+function normalizeDsmHost(host = '') {
+    const normalizedHost = host.trim().replace(/\/+$/, '');
+    const protocolMatch = normalizedHost.match(/^(https?):\/\/(.+)$/i);
+
+    if (protocolMatch) {
+        return {
+            protocol: protocolMatch[1].toLowerCase(),
+            pureHost: protocolMatch[2]
+        };
+    }
+
+    return {
+        protocol: normalizedHost.endsWith(':5001') ? 'https' : 'http',
+        pureHost: normalizedHost
+    };
+}
+
 async function dsmRequest(state, path, params = {}, method = 'GET') {
     const settings = await getSettings();
     if (!settings.host) throw new Error("NAS Host not set");
@@ -29,8 +46,7 @@ async function dsmRequest(state, path, params = {}, method = 'GET') {
 
     try {
         // 1. 確保 Host 不包含協定頭 (防止使用者輸入 http://)
-        const pureHost = settings.host.replace(/^https?:\/\//, '');
-        const protocol = pureHost.split(':').pop() === '5001' ? 'https' : 'http';
+        const { protocol, pureHost } = normalizeDsmHost(settings.host);
         
         // 2. 建立 URL 物件並檢查合法性
         const url = new URL(`${protocol}://${pureHost}${path}`);
@@ -119,8 +135,7 @@ export async function loginDSM(state) {
 }
 
 export async function loginPure(data) {
-    const pureHost = data.host.replace(/^https?:\/\//, '');
-    const protocol = pureHost.endsWith(':5001') ? 'https' : 'http';
+    const { protocol, pureHost } = normalizeDsmHost(data.host);
     
     // 使用 URLSearchParams 建構子直接組合參數
     const params = new URLSearchParams({

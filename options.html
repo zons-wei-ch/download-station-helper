@@ -19,7 +19,13 @@
             <h3>Login Attributes</h3>
             <div class="field-group">
                 <label for="host">Host</label>
-                <input type="text" id="host" placeholder="[ip:5000] [quick:5001]">
+                <div class="host-input-row">
+                    <select id="protocol">
+                        <option value="http">http</option>
+                        <option value="https">https</option>
+                    </select>
+                    <input type="text" id="host" placeholder="[ip:5000] [quick:5001] [dns:port]">
+                </div>
             </div>
 
             <div class="field-group">
