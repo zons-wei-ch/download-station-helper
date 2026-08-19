@@ -12,6 +12,8 @@ export async function showConfirm(title, text, type = 'question') {
         title,
         text,
         icon: type,
+        // Keep the extension popup's fixed body height while the modal is open.
+        heightAuto: false,
         background: isDarkMode ? '#444' : '#ddd',
         color: isDarkMode ? '#ddd' : '#444',
         showCancelButton: true,
@@ -57,6 +59,7 @@ export function showError(title, message) {
 
     Swal.fire({
         icon: 'error',
+        heightAuto: false,
         background: isDarkMode ? '#444' : '#ddd',
         color: isDarkMode ? '#ddd' : '#444',
         title,
