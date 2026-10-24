@@ -9,11 +9,27 @@ const state = {
 };
 
 // 更新 Badge
-function updateBadge(count) {
-    if (count > 0) {
-        chrome.action.setBadgeText({ text: String(count) });
-        chrome.action.setBadgeBackgroundColor({ color: "#66aadd" });
-    } else if (count == 0) {
+function updateBadge(tasks) {
+    if (Array.isArray(tasks) && tasks.length > 0) {
+        const downloadingCount = tasks.filter(task => task.status === 'downloading').length;
+        const seedingCount = tasks.filter(task => task.status === 'seeding').length;
+        const finishedCount = tasks.filter(task => task.status === 'finished').length;
+
+        if (downloadingCount > 0) {
+            chrome.action.setBadgeText({ text: String(downloadingCount) });
+            chrome.action.setBadgeBackgroundColor({ color: '#66aadd' });
+        } else if (seedingCount > 0) {
+            chrome.action.setBadgeText({ text: String(seedingCount) });
+            chrome.action.setBadgeBackgroundColor({ color: '#e7aa44' });
+        } else if (finishedCount > 0) {
+            chrome.action.setBadgeText({ text: String(finishedCount) });
+            chrome.action.setBadgeBackgroundColor({ color: '#55aa66' });
+        } else {
+            // Preserve the previous behavior for waiting, paused, or error tasks.
+            chrome.action.setBadgeText({ text: String(tasks.length) });
+            chrome.action.setBadgeBackgroundColor({ color: '#66aadd' });
+        }
+    } else if (Array.isArray(tasks)) {
         chrome.action.setBadgeText({ text: "-" });
         chrome.action.setBadgeBackgroundColor({ color: "#c3c3c3" });
     } else {
@@ -60,7 +76,7 @@ async function refreshTasks() {
         checkTaskNotifications(tasks, state.latestTasks, settings);
 
         state.latestTasks = tasks;
-        updateBadge(tasks.length);
+        updateBadge(tasks);
 
         chrome.runtime.sendMessage({
             action: "tasksUpdated",
@@ -70,7 +86,7 @@ async function refreshTasks() {
     }
     catch (e) {
         console.error("refreshTasks failed", e);
-        updateBadge(-1);
+        updateBadge(null);
         chrome.runtime.sendMessage({
             action: "tasksUpdated",
             success: false,
